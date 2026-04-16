@@ -19,7 +19,7 @@
 </div>
 <br>
 
-The SCON language provides a flexible, simple, efficient and Turing complete way to store and manipulate hierarchical data, all within a single freestanding C99 header.
+The SCON language provides a flexible, simple, efficient and Turing complete way to store and manipulate hierarchical data, all as a freestanding C99 header-only library.
 
 > SCON is currently very work in progress.
 
@@ -206,7 +206,6 @@ lower_case = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "
 
 Included is a list of the final value for each escape sequence:
 
-<div align="center">
 | Escape Sequence | Description | Final Value |
 |-----------------|-------------|-------------|
 | `\a` | Alert (bell) | `0x07` |
@@ -222,7 +221,6 @@ Included is a list of the final value for each escape sequence:
 | `\"` | Double Quote | `"` |
 | `\?` | Question Mark | `?` |
 | `\xHH` | Hexadecimal value | `0xHH` |
-</div>
 
 ## Evaluation
 

@@ -1,0 +1,145 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "SCON",
+    "scopeName": "source.scon",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#constants"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#lambda-def"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#operators"
+        },
+        {
+            "include": "#function-calls"
+        },
+        {
+            "include": "#parens"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "begin": "/\\*",
+                    "end": "\\*/",
+                    "name": "comment.block.scon"
+                },
+                {
+                    "match": "//.*$",
+                    "name": "comment.line.double-slash.scon"
+                }
+            ]
+        },
+        "strings": {
+            "begin": "\"",
+            "end": "\"",
+            "name": "string.quoted.double.scon",
+            "patterns": [
+                {
+                    "match": "\\\\([abefnrtv\\\\'\"]|\\?|x[0-9a-fA-F]{2})",
+                    "name": "constant.character.escape.scon"
+                },
+                {
+                    "match": "\\{[0-9]*\\}",
+                    "name": "constant.other.placeholder.scon"
+                }
+            ]
+        },
+        "constants": {
+            "match": "(?<=^|[\\s\\(\\)])(true|false|nil|pi|e)(?=[\\s\\(\\)]|$)",
+            "name": "constant.language.scon"
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?0[xX][0-9a-fA-F_]+(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.hex.scon"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?0[oO][0-7_]+(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.octal.scon"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?0[bB][01_]+(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.binary.scon"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?(?:[iI][nN][fF]|[nN][aA][nN])(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.special.scon"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?([0-9_]+\\.[0-9_]+|\\.[0-9_]+)([eE][-+]?[0-9_]+)?(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.float.scon"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?[0-9_]+[eE][-+]?[0-9_]+(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.float.scientific.scon"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)])[-+]?[0-9_]+(?=[\\s\\(\\)]|$)",
+                    "name": "constant.numeric.integer.scon"
+                }
+            ]
+        },
+        "lambda-def": {
+            "begin": "(\\()\\s*(lambda)\\s*(\\()",
+            "beginCaptures": {
+                "1": {
+                    "name": "punctuation.section.parens.scon"
+                },
+                "2": {
+                    "name": "keyword.control.scon"
+                },
+                "3": {
+                    "name": "punctuation.section.parens.scon"
+                }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.section.parens.scon"
+                }
+            },
+            "patterns": [
+                {
+                    "match": "[a-zA-Z!$%&*+./:<=>?@^_|~{}\\[\\]#\\-][a-zA-Z0-9!$%&*+./:<=>?@^_|~{}\\[\\]#\\-]*",
+                    "name": "variable.parameter.scon"
+                },
+                {
+                    "include": "#comments"
+                }
+            ]
+        },
+        "keywords": {
+            "match": "(?<=^|[\\s\\(\\)])(do|def|set|let|if|when|unless|cond|and|or|not|assert|throw|lambda|quote|map|filter|reduce|sort|min|max|clamp|abs|floor|ceil|round|pow|log|sqrt|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|asinh|acosh|atanh|rand|seed|include|read-file|print|println|format|time|env|len|atom\\?|int\\?|float\\?|number\\?|lambda\\?|primitive\\?|callable\\?|list\\?|empty\\?|int|float|list|concat|first|last|rest|init|nth|index|reverse|slice|starts-with\\?|ends-with\\?|contains\\?|replace|join|split|upper|lower|trim|get|keys|values|assoc|dissoc|update)(?=[\\s\\(\\)]|$)",
+            "name": "keyword.control.scon"
+        },
+        "operators": {
+            "match": "(?<=^|[\\s\\(\\)])(\\+|-|\\*|/|%|=|==|!=|<|>|<=|>=|&|\\||\\^|~|<<|>>)(?=[\\s\\(\\)]|$)",
+            "name": "keyword.operator.scon"
+        },
+        "function-calls": {
+            "match": "(?<=\\()[a-zA-Z!$%&*+./:<=>?@^_|~{}\\[\\]#\\-][a-zA-Z0-9!$%&*+./:<=>?@^_|~{}\\[\\]#\\-]*(?=[\\s\\(\\)]|$)",
+            "name": "entity.name.function.scon"
+        },
+        "parens": {
+            "match": "[\\(\\)]",
+            "name": "punctuation.section.parens.scon"
+        }
+    }
+}

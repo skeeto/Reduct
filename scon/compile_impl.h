@@ -1,0 +1,4 @@
+#ifndef SCON_COMPILE_IMPL_H
+#define SCON_COMPILE_IMPL_H 1
+
+#endif

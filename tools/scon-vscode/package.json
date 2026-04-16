@@ -1,0 +1,38 @@
+{
+    "name": "scon",
+    "displayName": "SCON Language Support",
+    "description": "Syntax highlighting and language support for Simple Computable Ordered Notation (SCON)",
+    "version": "1.0.0",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywords": [
+        "scon",
+        "lisp"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "scon",
+                "aliases": [
+                    "SCON",
+                    "scon"
+                ],
+                "extensions": [
+                    ".scon"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "scon",
+                "scopeName": "source.scon",
+                "path": "./syntaxes/scon.tmLanguage.json"
+            }
+        ]
+    }
+}

@@ -58,6 +58,13 @@ typedef struct scon_expr
 #define SCON_EXPR_SELF() (scon_expr_t){.mode = SCON_MODE_SELF, .value = 0}
 
 /**
+ * @brief Create a `SCON_MODE_TARGET` mode expression.
+ *
+ * @param _reg The target register hint.
+ */
+#define SCON_EXPR_TARGET(_reg) ((scon_expr_t){.mode = SCON_MODE_TARGET, .reg = (_reg)})
+
+/**
  * @brief SCON local structure.
  * @struct scon_local_t
  */
@@ -81,7 +88,6 @@ typedef struct scon_compiler
     scon_uint64_t regLocal[SCON_REGISTER_MAX / 64]; ///< Bitmask of registers used by locals.
     scon_local_t locals[SCON_REGISTER_MAX];         ///< The local variables.
     scon_item_t* lastNode; ///< The last node processed by the compiler, used for error reporting.
-    scon_reg_t targetHint; ///< The preferred register for the next allocation.
 } scon_compiler_t;
 
 /**
@@ -243,6 +249,22 @@ SCON_API scon_local_t* scon_local_lookup(scon_compiler_t* compiler, scon_atom_t*
 SCON_API void scon_expr_compile(scon_compiler_t* compiler, scon_item_t* item, scon_expr_t* out);
 
 /**
+ * @brief Allocate a new register, favoring the output expression's target if provided.
+ *
+ * @param compiler The compiler context.
+ * @param out The output expression which may contain a target hint.
+ * @return The allocated register index.
+ */
+static inline scon_reg_t scon_expr_get_reg(scon_compiler_t* compiler, scon_expr_t* out)
+{
+    if (out != SCON_NULL && out->mode == SCON_MODE_TARGET)
+    {
+        return out->reg;
+    }
+    return scon_reg_alloc(compiler);
+}
+
+/**
  * @brief Free resources associated with an expression descriptor.
  *
  * @param compiler The compiler context.
@@ -262,7 +284,7 @@ static inline void scon_expr_done(scon_compiler_t* compiler, scon_expr_t* expr)
  * @param compiler The compiler context.
  * @param inst The instruction to emit.
  */
-static inline void scon_emit(scon_compiler_t* compiler, scon_inst_t inst)
+static inline void scon_compile_inst(scon_compiler_t* compiler, scon_inst_t inst)
 {
     scon_function_emit(compiler->scon, compiler->function, inst);
 }
@@ -273,9 +295,9 @@ static inline void scon_emit(scon_compiler_t* compiler, scon_inst_t inst)
  * @param compiler The compiler context.
  * @param target The target register.
  */
-static inline void scon_emit_list(scon_compiler_t* compiler, scon_reg_t target)
+static inline void scon_compile_list(scon_compiler_t* compiler, scon_reg_t target)
 {
-    scon_emit(compiler, SCON_INST_MAKE_ABC(SCON_OPCODE_LIST, target, 0, 0));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ABC(SCON_OPCODE_LIST, target, 0, 0));
 }
 
 /**
@@ -286,10 +308,10 @@ static inline void scon_emit_list(scon_compiler_t* compiler, scon_reg_t target)
  * @param callable The callable expression.
  * @param arity The number of arguments.
  */
-static inline void scon_emit_call(scon_compiler_t* compiler, scon_reg_t target, scon_expr_t* callable,
+static inline void scon_compile_call(scon_compiler_t* compiler, scon_reg_t target, scon_expr_t* callable,
     scon_uint32_t arity)
 {
-    scon_emit(compiler,
+    scon_compile_inst(compiler,
         SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_CALL | callable->mode), target, arity, callable->value));
 }
 
@@ -300,9 +322,9 @@ static inline void scon_emit_call(scon_compiler_t* compiler, scon_reg_t target, 
  * @param target The target register.
  * @param expr The source expression.
  */
-static inline void scon_emit_move(scon_compiler_t* compiler, scon_reg_t target, scon_expr_t* expr)
+static inline void scon_compile_move(scon_compiler_t* compiler, scon_reg_t target, scon_expr_t* expr)
 {
-    scon_emit(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_MOVE | expr->mode), target, 0, expr->value));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_MOVE | expr->mode), target, 0, expr->value));
 }
 
 /**
@@ -313,10 +335,10 @@ static inline void scon_emit_move(scon_compiler_t* compiler, scon_reg_t target, 
  * @param a The register to test (if not `SCON_OPCODE_JMP`).
  * @return The index of the emitted instruction to be patched later.
  */
-static inline scon_size_t scon_emit_jump(scon_compiler_t* compiler, scon_opcode_t op, scon_reg_t a)
+static inline scon_size_t scon_compile_jump(scon_compiler_t* compiler, scon_opcode_t op, scon_reg_t a)
 {
     scon_size_t pos = compiler->function->instCount;
-    scon_emit(compiler, SCON_INST_MAKE_ASBX(op, a, 0));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ASBX(op, a, 0));
     return pos;
 }
 
@@ -326,7 +348,7 @@ static inline scon_size_t scon_emit_jump(scon_compiler_t* compiler, scon_opcode_
  * @param compiler The compiler context.
  * @param pos The index of the jump instruction to patch.
  */
-static inline void scon_emit_jump_patch(scon_compiler_t* compiler, scon_size_t pos)
+static inline void scon_compile_jump_patch(scon_compiler_t* compiler, scon_size_t pos)
 {
     scon_int32_t offset = (scon_int32_t)(compiler->function->instCount - pos - 1);
     compiler->function->insts[pos] = SCON_INST_SET_SBX(compiler->function->insts[pos], offset);
@@ -339,7 +361,7 @@ static inline void scon_emit_jump_patch(scon_compiler_t* compiler, scon_size_t p
  * @param expr The expression to move or allocate.
  * @return The register where the value is stored.
  */
-static inline scon_reg_t scon_emit_move_or_alloc(scon_compiler_t* compiler, scon_expr_t* expr)
+static inline scon_reg_t scon_compile_move_or_alloc(scon_compiler_t* compiler, scon_expr_t* expr)
 {
     if (expr->mode == SCON_MODE_REG)
     {
@@ -347,7 +369,7 @@ static inline scon_reg_t scon_emit_move_or_alloc(scon_compiler_t* compiler, scon
     }
 
     scon_reg_t target = scon_reg_alloc(compiler);
-    scon_emit_move(compiler, target, expr);
+    scon_compile_move(compiler, target, expr);
     *expr = SCON_EXPR_REG(target);
     return target;
 }
@@ -358,7 +380,7 @@ static inline scon_reg_t scon_emit_move_or_alloc(scon_compiler_t* compiler, scon
  * @param compiler The compiler context.
  * @param expr The expression to return.
  */
-static inline void scon_emit_return(scon_compiler_t* compiler, scon_expr_t* expr)
+static inline void scon_compile_return(scon_compiler_t* compiler, scon_expr_t* expr)
 {
     if (expr->mode == SCON_MODE_NONE)
     {
@@ -368,7 +390,7 @@ static inline void scon_emit_return(scon_compiler_t* compiler, scon_expr_t* expr
         return;
     }
 
-    scon_emit(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_RETURN | expr->mode), 0, 0, expr->value));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_RETURN | expr->mode), 0, 0, expr->value));
 }
 
 /**
@@ -378,9 +400,9 @@ static inline void scon_emit_return(scon_compiler_t* compiler, scon_expr_t* expr
  * @param target The target list register.
  * @param expr The expression to append.
  */
-static inline void scon_emit_append(scon_compiler_t* compiler, scon_reg_t target, scon_expr_t* expr)
+static inline void scon_compile_append(scon_compiler_t* compiler, scon_reg_t target, scon_expr_t* expr)
 {
-    scon_emit(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_APPEND | expr->mode), target, 0, expr->value));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_APPEND | expr->mode), target, 0, expr->value));
 }
 
 /**
@@ -392,10 +414,10 @@ static inline void scon_emit_append(scon_compiler_t* compiler, scon_reg_t target
  * @param left The left operand register.
  * @param right The right operand expression.
  */
-static inline void scon_emit_binary(scon_compiler_t* compiler, scon_opcode_t opBase, scon_reg_t target, scon_reg_t left,
+static inline void scon_compile_binary(scon_compiler_t* compiler, scon_opcode_t opBase, scon_reg_t target, scon_reg_t left,
     scon_expr_t* right)
 {
-    scon_emit(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(opBase | right->mode), target, left, right->value));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ABC((scon_opcode_t)(opBase | right->mode), target, left, right->value));
 }
 
 /**
@@ -405,9 +427,9 @@ static inline void scon_emit_binary(scon_compiler_t* compiler, scon_opcode_t opB
  * @param target The target register.
  * @param funcConst The constant index of the function prototype.
  */
-static inline void scon_emit_closure(scon_compiler_t* compiler, scon_reg_t target, scon_const_t funcConst)
+static inline void scon_compile_closure(scon_compiler_t* compiler, scon_reg_t target, scon_const_t funcConst)
 {
-    scon_emit(compiler, SCON_INST_MAKE_ABC(SCON_OPCODE_CLOSURE, target, 0, funcConst));
+    scon_compile_inst(compiler, SCON_INST_MAKE_ABC(SCON_OPCODE_CLOSURE, target, 0, funcConst));
 }
 
 /**
@@ -418,10 +440,10 @@ static inline void scon_emit_closure(scon_compiler_t* compiler, scon_reg_t targe
  * @param slot The constant slot index in the closure to capture into.
  * @param expr The expression to be captured.
  */
-static inline void scon_emit_capture(scon_compiler_t* compiler, scon_reg_t closureReg, scon_uint32_t slot,
+static inline void scon_compile_capture(scon_compiler_t* compiler, scon_reg_t closureReg, scon_uint32_t slot,
     scon_expr_t* expr)
 {
-    scon_emit(compiler,
+    scon_compile_inst(compiler,
         SCON_INST_MAKE_ABC((scon_opcode_t)(SCON_OPCODE_CAPTURE | expr->mode), closureReg, slot, expr->value));
 }
 

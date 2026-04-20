@@ -36,9 +36,10 @@
 typedef enum
 {
     SCON_MODE_NONE = -1,      ///< Invalid mode.
+    SCON_MODE_TARGET = -2,    ///< Compilation target hint mode.
+    SCON_MODE_SELF = -3,  ///< Only used by `scon_keyword_lambda` to handle recursive lambdas.
     SCON_MODE_REG = 0,        ///< Register operand mode.
     SCON_MODE_CONST = 1 << 6, ///< Constant operand mode.
-    SCON_MODE_SELF = 1 << 7,  ///< Only used by `scon_keyword_lambda` to handle recursive lambdas.
 } scon_mode_t;
 
 /**

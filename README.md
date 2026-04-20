@@ -1,4 +1,3 @@
-
 # Simple Computable Ordered Notation (SCON)
 
 <br>

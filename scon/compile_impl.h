@@ -34,7 +34,7 @@ SCON_API scon_function_t* scon_compile(scon_t* scon, scon_handle_t* ast)
         }
     }
 
-    scon_emit_return(&compiler, &lastExpr);
+    scon_compile_return(&compiler, &lastExpr);
 
     scon_compiler_deinit(&compiler);
 
@@ -50,7 +50,6 @@ SCON_API void scon_compiler_init(scon_compiler_t* compiler, scon_t* scon, scon_f
     compiler->function = function;
     compiler->localCount = 0;
     compiler->lastNode = SCON_NULL;
-    compiler->targetHint = (scon_reg_t)-1;
 
     SCON_MEMSET(compiler->regAlloc, 0, sizeof(compiler->regAlloc));
     SCON_MEMSET(compiler->regLocal, 0, sizeof(compiler->regLocal));
@@ -114,9 +113,6 @@ static inline void scon_expr_compile_atom(scon_compiler_t* compiler, scon_item_t
 
 static inline void scon_expr_compile_list(scon_compiler_t* compiler, scon_item_t* list, scon_expr_t* out)
 {
-    scon_reg_t hint = compiler->targetHint;
-    compiler->targetHint = (scon_reg_t)-1;
-
     if (list->length == 0)
     {
         return;
@@ -142,36 +138,32 @@ static inline void scon_expr_compile_list(scon_compiler_t* compiler, scon_item_t
     scon_uint32_t regCount = arity == 0 ? 1 : arity;
 
     scon_reg_t base;
-    if (hint != (scon_reg_t)-1)
+    if (out != SCON_NULL && out->mode == SCON_MODE_TARGET)
     {
-        base = scon_reg_alloc_range_hint(compiler, regCount, hint);
+        base = scon_reg_alloc_range_hint(compiler, regCount, out->reg);
     }
     else
     {
         base = scon_reg_alloc_range(compiler, regCount);
     }
 
-    scon_expr_t callable;
+    scon_expr_t callable = SCON_EXPR_NONE();
     scon_expr_compile(compiler, head, &callable);
 
     for (scon_uint32_t i = 1; i < list->length; i++)
     {
         scon_reg_t target = base + i - 1;
-        compiler->targetHint = target;
-
-        scon_expr_t argExpr;
+        scon_expr_t argExpr = SCON_EXPR_TARGET(target);
         scon_expr_compile(compiler, list->list.items[i], &argExpr);
-
-        compiler->targetHint = (scon_reg_t)-1;
 
         if (argExpr.mode != SCON_MODE_REG || argExpr.reg != target)
         {
-            scon_emit_move(compiler, target, &argExpr);
+            scon_compile_move(compiler, target, &argExpr);
             scon_expr_done(compiler, &argExpr);
         }
     }
 
-    scon_emit_call(compiler, base, &callable, arity);
+    scon_compile_call(compiler, base, &callable, arity);
 
     scon_expr_done(compiler, &callable);
 

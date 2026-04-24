@@ -22,6 +22,15 @@ struct scon_item;
 #define SCON_GC_THRESHOLD_INITIAL 128 ///< Initial blocks allocated threshold for garbage collection.
 
 /**
+ * @brief SCON input flags.
+ */
+typedef enum
+{
+    SCON_INPUT_FLAG_NONE = 0,
+    SCON_INPUT_FLAG_OWNED = 1 ///< The input buffer is owned by the input structure and should be freed.
+} scon_input_flags_t;
+
+/**
  * @brief SCON input structure.
  * @struct scon_input_t
  */
@@ -30,6 +39,7 @@ typedef struct scon_input
     struct scon_input* prev;
     const char* buffer;
     const char* end;
+    scon_input_flags_t flags;
     char path[SCON_PATH_MAX];
 } scon_input_t;
 
@@ -113,9 +123,10 @@ SCON_API void scon_constant_register(scon_t* scon, const char* name, struct scon
  * @param buffer The input buffer.
  * @param length The length of the input buffer.
  * @param path The path to the input file.
+ * @param flags Input flags.
  * @return A pointer to the newly created input structure.
  */
-SCON_API scon_input_t* scon_input_new(scon_t* scon, const char* buffer, scon_size_t length, const char* path);
+SCON_API scon_input_t* scon_input_new(scon_t* scon, const char* buffer, scon_size_t length, const char* path, scon_input_flags_t flags);
 
 /** @} */
 

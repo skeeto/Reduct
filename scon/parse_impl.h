@@ -126,22 +126,8 @@ static void scon_parse_unquoted_atom(scon_t* scon, scon_parse_ctx_t* ctx)
     scon_list_append(scon, ctx->stack[ctx->current], SCON_HANDLE_FROM_ITEM(item));
 }
 
-SCON_API scon_handle_t scon_parse(scon_t* scon, const char* str, scon_size_t len, const char* path)
+SCON_API scon_handle_t scon_parse_input(scon_t* scon, scon_input_t* input)
 {
-    SCON_ASSERT(scon != SCON_NULL);
-    SCON_ASSERT(str != SCON_NULL);
-
-    if (scon == SCON_NULL || str == SCON_NULL)
-    {
-        SCON_ERROR_INTERNAL(scon, "invalid arguments");
-    }
-
-    scon_input_t* input = scon_input_new(scon, str, len, path);
-    if (input == SCON_NULL)
-    {
-        SCON_ERROR_INTERNAL(scon, "out of memory");
-    }
-
     scon_list_t* root = scon_list_new(scon);
     if (root == SCON_NULL)
     {
@@ -154,7 +140,7 @@ SCON_API scon_handle_t scon_parse(scon_t* scon, const char* str, scon_size_t len
     SCON_GC_RETAIN(scon, result);
 
     scon_parse_ctx_t ctx;
-    ctx.ptr = str;
+    ctx.ptr = input->buffer;
     ctx.input = input;
     ctx.current = 0;
     ctx.stack[0] = root;
@@ -180,7 +166,7 @@ SCON_API scon_handle_t scon_parse(scon_t* scon, const char* str, scon_size_t len
             scon_list_t* child = scon_list_new(scon);
             scon_item_t* item = SCON_CONTAINER_OF(child, scon_item_t, list);
             item->input = input;
-            item->position = (scon_size_t)(ctx.ptr - str) + 1;
+            item->position = (scon_size_t)(ctx.ptr - input->buffer) + 1;
 
             scon_list_append(scon, ctx.stack[ctx.current], SCON_HANDLE_FROM_ITEM(item));
             ctx.stack[++ctx.current] = child;
@@ -218,7 +204,26 @@ SCON_API scon_handle_t scon_parse(scon_t* scon, const char* str, scon_size_t len
         SCON_ERROR_SYNTAX(scon->error, ctx.input, ctx.ptr, "unexpected end of file, missing ')'");
     }
 
-        return result;
+    return result;
+}
+
+SCON_API scon_handle_t scon_parse(scon_t* scon, const char* str, scon_size_t len, const char* path)
+{
+    SCON_ASSERT(scon != SCON_NULL);
+    SCON_ASSERT(str != SCON_NULL);
+
+    if (scon == SCON_NULL || str == SCON_NULL)
+    {
+        SCON_ERROR_INTERNAL(scon, "invalid arguments");
+    }
+
+    scon_input_t* input = scon_input_new(scon, str, len, path, SCON_INPUT_FLAG_NONE);
+    if (input == SCON_NULL)
+    {
+        SCON_ERROR_INTERNAL(scon, "out of memory");
+    }
+
+    return scon_parse_input(scon, input);
 }
 
 SCON_API scon_handle_t scon_parse_file(scon_t* scon, const char* path)
@@ -258,7 +263,14 @@ SCON_API scon_handle_t scon_parse_file(scon_t* scon, const char* path)
     }
     SCON_FCLOSE(file);
 
-    return scon_parse(scon, buffer, len, path);
+    scon_input_t* input = scon_input_new(scon, buffer, len, path, SCON_INPUT_FLAG_OWNED);
+    if (input == SCON_NULL)
+    {
+        SCON_FREE(buffer);
+        SCON_ERROR_INTERNAL(scon, "out of memory");
+    }
+
+    return scon_parse_input(scon, input);
 }
 
 #endif

@@ -72,7 +72,10 @@ SCON_API void scon_free(scon_t* scon)
     while (input != SCON_NULL)
     {
         scon_input_t* next = input->prev;
-        SCON_FREE((void*)input->buffer);
+        if (input->flags & SCON_INPUT_FLAG_OWNED)
+        {
+            SCON_FREE((void*)input->buffer);
+        }
         if (input != &scon->firstInput)
         {
             SCON_FREE(input);
@@ -117,7 +120,7 @@ SCON_API void scon_constant_register(scon_t* scon, const char* name, scon_item_t
     SCON_GC_RETAIN_ITEM(scon, item);
 }
 
-SCON_API scon_input_t* scon_input_new(scon_t* scon, const char* buffer, scon_size_t length, const char* path)
+SCON_API scon_input_t* scon_input_new(scon_t* scon, const char* buffer, scon_size_t length, const char* path, scon_input_flags_t flags)
 {
     SCON_ASSERT(scon != SCON_NULL);
     SCON_ASSERT(buffer != SCON_NULL);
@@ -139,6 +142,7 @@ SCON_API scon_input_t* scon_input_new(scon_t* scon, const char* buffer, scon_siz
     input->prev = scon->input;
     input->buffer = buffer;
     input->end = buffer + length;
+    input->flags = flags;
     SCON_STRNCPY(input->path, path, SCON_PATH_MAX - 1);
     input->path[SCON_PATH_MAX - 1] = '\0';
     scon->input = input;

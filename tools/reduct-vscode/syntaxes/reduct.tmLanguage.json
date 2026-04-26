@@ -1,0 +1,152 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Reduct",
+    "scopeName": "source.reduct",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#constants"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#lambda-def"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#operators"
+        },
+        {
+            "include": "#braces"
+        },
+        {
+            "include": "#function-calls"
+        },
+        {
+            "include": "#parens"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "begin": "/\\*",
+                    "end": "\\*/",
+                    "name": "comment.block.reduct"
+                },
+                {
+                    "match": "//.*$",
+                    "name": "comment.line.double-slash.reduct"
+                }
+            ]
+        },
+        "strings": {
+            "begin": "\"",
+            "end": "\"",
+            "name": "string.quoted.double.reduct",
+            "patterns": [
+                {
+                    "match": "\\\\([abefnrtv\\\\'\"]|\\?|x[0-9a-fA-F]{2})",
+                    "name": "constant.character.escape.reduct"
+                },
+                {
+                    "match": "\\{[0-9]*\\}",
+                    "name": "constant.other.placeholder.reduct"
+                }
+            ]
+        },
+        "constants": {
+            "match": "(?<=^|[\\s\\(\\)\\{\\}])(true|false|nil|pi|e)(?=[\\s\\(\\)\\{\\}]|$)",
+            "name": "constant.language.reduct"
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?0[xX][0-9a-fA-F_]+(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.hex.reduct"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?0[oO][0-7_]+(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.octal.reduct"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?0[bB][01_]+(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.binary.reduct"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?(?:[iI][nN][fF]|[nN][aA][nN])(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.special.reduct"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?([0-9_]+\\.[0-9_]+|\\.[0-9_]+)([eE][-+]?[0-9_]+)?(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.float.reduct"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?[0-9_]+[eE][-+]?[0-9_]+(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.float.scientific.reduct"
+                },
+                {
+                    "match": "(?<=^|[\\s\\(\\)\\{\\}])[-+]?[0-9_]+(?=[\\s\\(\\)\\{\\}]|$)",
+                    "name": "constant.numeric.integer.reduct"
+                }
+            ]
+        },
+        "lambda-def": {
+            "begin": "(\\()\\s*(lambda)\\s*(\\()",
+            "beginCaptures": {
+                "1": {
+                    "name": "punctuation.section.parens.reduct"
+                },
+                "2": {
+                    "name": "keyword.control.reduct"
+                },
+                "3": {
+                    "name": "punctuation.section.parens.reduct"
+                }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": {
+                    "name": "punctuation.section.parens.reduct"
+                }
+            },
+            "patterns": [
+                {
+                    "match": "[a-zA-Z!$%&*+./:<=>?@^_|~{}\\[\\]#\\-,;`][a-zA-Z0-9!$%&*+./:<=>?@^_|~{}\\[\\]#\\-,;`]*",
+                    "name": "variable.parameter.reduct"
+                },
+                {
+                    "include": "#comments"
+                }
+            ]
+        },
+        "keywords": {
+            "match": "(?<=^|[\\s\\(\\)\\{\\}])(quote|list|do|lambda|->|def|let|if|when|unless|cond|match|and|or|not|assert!|throw!|try|map|filter|reduce|apply|any\\?|all\\?|sort|len|range|concat|first|last|rest|init|nth|assoc|dissoc|update|index-of|reverse|slice|flatten|contains\\?|replace|unique|chunk|find|get-in|assoc-in|dissoc-in|update-in|keys|values|merge|zip|starts-with\\?|ends-with\\?|join|split|upper|lower|trim|atom\\?|int\\?|float\\?|number\\?|string\\?|lambda\\?|native\\?|callable\\?|list\\?|empty\\?|nil\\?|bool\\?|nan\\?|inf\\?|even\\?|odd\\?|zero\\?|positive\\?|negative\\?|type|int|float|string|eval|parse|load!|read-file!|write-file!|print!|println!|ord|chr|read-line!|read-char!|format|now!|uptime!|env!|args!|min|max|clamp|abs|floor|ceil|round|pow|exp|log|sqrt|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|asinh|acosh|atanh|rand|seed!)(?=[\\s\\(\\)\\{\\}]|$)",
+            "name": "keyword.control.reduct"
+        },
+        "operators": {
+            "match": "(?<=^|[\\s\\(\\)\\{\\}])(\\+\\+|--|\\+|-|\\*|/|%|==|!=|eq\\?|ne\\?|<=|>=|<|>|=|&|\\||\\^|~|<<|>>)(?=[\\s\\(\\)\\{\\}]|$)",
+            "name": "keyword.operator.reduct"
+        },
+        "function-calls": {
+            "match": "(?<=\\()[a-zA-Z!$%&*+./:<=>?@^_|~{}\\[\\]#\\-,;`][a-zA-Z0-9!$%&*+./:<=>?@^_|~{}\\[\\]#\\-,;`]*(?=[\\s\\(\\)]|$)",
+            "name": "entity.name.function.reduct"
+        },
+        "parens": {
+            "match": "[\\(\\)]",
+            "name": "punctuation.section.parens.reduct"
+        },
+        "braces": {
+            "match": "[\\{\\}]",
+            "name": "punctuation.section.braces.reduct"
+        }
+    }
+}

@@ -1,0 +1,138 @@
+#ifndef REDUCT_ITEM_H
+#define REDUCT_ITEM_H 1
+
+#include "atom.h"
+#include "closure.h"
+#include "defs.h"
+#include "function.h"
+#include "list.h"
+
+/**
+ * @brief Reduct item management.
+ * @defgroup item Item
+ * @file item.h
+ *
+ * An item is a generic container for all data types and heap alloacted structures within Reduct.
+ *
+ * To optimize memory cacheing and reduce fragmentation, all items are 64 bytes and aligned to cache lines.
+ *
+ * @{
+ */
+
+/**
+ * @brief Reduct item type enumeration.
+ */
+typedef reduct_uint8_t reduct_item_type_t;
+#define REDUCT_ITEM_TYPE_NONE 0      ///< No type.
+#define REDUCT_ITEM_TYPE_ATOM 1      ///< An atom.
+#define REDUCT_ITEM_TYPE_LIST 2      ///< A list.
+#define REDUCT_ITEM_TYPE_FUNCTION 3  ///< A function.
+#define REDUCT_ITEM_TYPE_CLOSURE 4   ///< A closure.
+#define REDUCT_ITEM_TYPE_LIST_NODE 5 ///< A list node.
+
+/**
+ * @brief Reduct item flags enumeration.
+ */
+typedef reduct_uint8_t reduct_item_flags_t;
+#define REDUCT_ITEM_FLAG_NONE 0                ///< No flags.
+#define REDUCT_ITEM_FLAG_FALSY (1 << 0)        ///< Item is falsy.
+#define REDUCT_ITEM_FLAG_INT_SHAPED (1 << 1)   ///< Item is an integer shaped atom.
+#define REDUCT_ITEM_FLAG_FLOAT_SHAPED (1 << 2) ///< Item is a float shaped atom.
+#define REDUCT_ITEM_FLAG_INTRINSIC (1 << 3)    ///< Item is an atom and a intrinsic.
+#define REDUCT_ITEM_FLAG_NATIVE (1 << 4)       ///< Item is an atom and a native function.
+#define REDUCT_ITEM_FLAG_QUOTED (1 << 5)       ///< Item is a quoted atom.
+#define REDUCT_ITEM_FLAG_GC_MARK (1 << 6)      ///< Item is marked by GC.
+
+/**
+ * @brief Reduct item structure.
+ * @struct reduct_item_t
+ *
+ * Should be exactly 64 bytes for caching.
+ *
+ * @see handle
+ */
+typedef struct reduct_item
+{
+    struct reduct_input* input;  ///< The parsed input that created this item.
+    reduct_uint32_t position;    ///< The position in the input buffer where the item was parsed.
+    reduct_item_flags_t flags;   ///< Flags for the item.
+    reduct_item_type_t type;     ///< The type of the item.
+    reduct_uint16_t retainCount; ///< The reference count for GC retention.
+    union {
+        reduct_uint32_t length; ///< Common length for the item. (Stored in the union to save space due to padding rules.)
+        reduct_atom_t atom;     ///< An atom.
+        reduct_list_t list;     ///< A list.
+        reduct_list_node_t node;    ///< A list node.
+        reduct_function_t function; ///< A function.
+        reduct_closure_t closure;   ///< A closure.
+        struct reduct_item* free;   ///< The next free item in the free list.
+    };
+} reduct_item_t;
+
+#ifdef _Static_assert
+_Static_assert(sizeof(reduct_item_t) == 64, "reduct_item_t must be 64 bytes");
+#endif
+
+#define REDUCT_ITEM_BLOCK_MAX 255 ///< The maximum number of items in a block.
+
+/**
+ * @brief Reduct item block structure.
+ * @struct reduct_item_block_t
+ *
+ * Should be a power of two size as that should help most memory allocators.
+ */
+typedef struct reduct_item_block
+{
+    struct reduct_item_block* next;
+    reduct_uint8_t _padding[sizeof(reduct_item_t) - sizeof(struct reduct_item_block*)];
+    reduct_item_t items[REDUCT_ITEM_BLOCK_MAX];
+} reduct_item_block_t;
+
+#ifdef _Static_assert
+_Static_assert((sizeof(reduct_item_block_t) & (sizeof(reduct_item_block_t) - 1)) == 0,
+    "reduct_item_block_t must be a power of two");
+#endif
+
+/**
+ * @brief Allocate a new Reduct item.
+ *
+ * @param reduct Pointer to the Reduct structure.
+ * @return A pointer to the newly created item.
+ */
+REDUCT_API reduct_item_t* reduct_item_new(struct reduct* reduct);
+
+/**
+ * @brief Free an Reduct item.
+ *
+ * @param reduct Pointer to the Reduct structure.
+ * @param item Pointer to the item to free.
+ */
+REDUCT_API void reduct_item_free(struct reduct* reduct, reduct_item_t* item);
+
+/**
+ * @brief Get the integer value of an item if it is number shaped.
+ *
+ * @param item Pointer to the item.
+ * @return The integer value, or 0 if not number shaped.
+ */
+REDUCT_API reduct_int64_t reduct_item_get_int(reduct_item_t* item);
+
+/**
+ * @brief Get the float value of an item if it is number shaped.
+ *
+ * @param item Pointer to the item.
+ * @return The float value, or 0.0 if not number shaped.
+ */
+REDUCT_API reduct_float_t reduct_item_get_float(reduct_item_t* item);
+
+/**
+ * @brief Get the string representation of an Reduct item type.
+ *
+ * @param type The item type.
+ * @return The string representation of the item type.
+ */
+REDUCT_API const char* reduct_item_type_str(reduct_item_type_t type);
+
+/** @} */
+
+#endif

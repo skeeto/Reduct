@@ -8,9 +8,9 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tools/scon/build/scon",
+            "program": "${workspaceFolder}/tools/reduct/build/reduct",
             "args": [
-                "${workspaceFolder}/bench/brainfuck.scon"
+                "${workspaceFolder}/bench/brainfuck.reduct"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

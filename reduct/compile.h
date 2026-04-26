@@ -1,0 +1,662 @@
+#ifndef REDUCT_COMPILE_H
+#define REDUCT_COMPILE_H 1
+
+#include "core.h"
+#include "function.h"
+#include "gc.h"
+#include "inst.h"
+#include "item.h"
+#include "list.h"
+
+/**
+ * @brief Reduct bytecode compilation.
+ * @defgroup compile Compilation
+ * @file compile.h
+ *
+ * The compilation process converts S-expressions into register-based bytecode that can be executed by the Reduct virtual
+ * machine.
+ *
+ * @{
+ */
+
+/**
+ * @brief Reduct expression descriptor structure.
+ * @struct reduct_expr_t
+ */
+typedef struct reduct_expr
+{
+    reduct_mode_t mode; ///< Expression mode.
+    union {
+        reduct_uint16_t value;   ///< Raw union value
+        reduct_reg_t reg;        ///< Register index
+        reduct_const_t constant; ///< Constant index
+    };
+} reduct_expr_t;
+
+/**
+ * @brief Reduct local structure.
+ * @struct reduct_local_t
+ */
+typedef struct reduct_local
+{
+    reduct_atom_t* name; ///< The name of the local variable.
+    reduct_expr_t expr;  ///< The expression representing the local's value.
+} reduct_local_t;
+
+/**
+ * @brief Reduct compiler structure.
+ * @struct reduct_compiler_t
+ */
+typedef struct reduct_compiler
+{
+    struct reduct_compiler* enclosing;                ///< The enclosing compiler context, or `REDUCT_NULL`.
+    reduct_t* reduct;                                   ///< The Reduct structure.
+    reduct_function_t* function;                      ///< The function being compiled.
+    reduct_uint16_t localCount;                       ///< The amount of local variables.
+    reduct_uint64_t regAlloc[REDUCT_REGISTER_MAX / 64]; ///< Bitmask of allocated registers.
+    reduct_uint64_t regLocal[REDUCT_REGISTER_MAX / 64]; ///< Bitmask of registers used by locals.
+    reduct_local_t locals[REDUCT_REGISTER_MAX];         ///< The local variables.
+    reduct_item_t* lastItem; ///< The last item processed by the compiler, used for error reporting.
+} reduct_compiler_t;
+
+/**
+ * @brief Compiles a Reduct AST into a callable bytecode function.
+ *
+ * @warning The jump buffer must have been set using `REDUCT_CATCH` before calling this function.
+ *
+ * @param reduct The Reduct structure.
+ * @param ast The root AST item to compile (usually a list of expressions).
+ * @return A pointer to the compiled function.
+ */
+REDUCT_API reduct_function_t* reduct_compile(reduct_t* reduct, reduct_handle_t* ast);
+
+/**
+ * @brief Initialize a compiler context.
+ *
+ * @param compiler The compiler context to initialize.
+ * @param reduct The Reduct structure.
+ * @param function The function to compile into.
+ * @param enclosing The enclosing compiler context, or `REDUCT_NULL`.
+ */
+REDUCT_API void reduct_compiler_init(reduct_compiler_t* compiler, reduct_t* reduct, reduct_function_t* function,
+    reduct_compiler_t* enclosing);
+
+/**
+ * @brief Deinitialize a compiler context.
+ *
+ * @param compiler The compiler context to deinitialize.
+ */
+REDUCT_API void reduct_compiler_deinit(reduct_compiler_t* compiler);
+
+/**
+ * @brief Set a register as allocated.
+ *
+ * @param _compiler The compiler instance.
+ * @param _reg The register to set as allocated.
+ */
+#define REDUCT_REG_SET_ALLOCATED(_compiler, _reg) \
+    do \
+    { \
+        (_compiler)->regAlloc[(_reg) / 64] |= (1ULL << ((_reg) % 64)); \
+        if ((_reg) + 1 > (_compiler)->function->registerCount) \
+        { \
+            (_compiler)->function->registerCount = (_reg) + 1; \
+        } \
+    } while (0)
+
+/**
+ * @brief Clear a register's allocation status.
+ *
+ * @param _compiler The compiler instance.
+ * @param _reg The register to clear.
+ */
+#define REDUCT_REG_CLEAR_ALLOCATED(_compiler, _reg) ((_compiler)->regAlloc[(_reg) / 64] &= ~(1ULL << ((_reg) % 64)))
+
+/**
+ * @brief Check if a register is allocated.
+ *
+ * @param _compiler The compiler instance.
+ * @param _reg The register to check.
+ */
+#define REDUCT_REG_IS_ALLOCATED(_compiler, _reg) (((_compiler)->regAlloc[(_reg) / 64] & (1ULL << ((_reg) % 64))) != 0)
+
+/**
+ * @brief Set a register as a local.
+ *
+ * @param _compiler The compiler instance.
+ * @param _reg The register to set as a local.
+ */
+#define REDUCT_REG_SET_LOCAL(_compiler, _reg) ((_compiler)->regLocal[(_reg) / 64] |= (1ULL << ((_reg) % 64)))
+
+/**
+ * @brief Clear a register's local status.
+ *
+ * @param _compiler The compiler instance.
+ * @param _reg The register to clear.
+ */
+#define REDUCT_REG_CLEAR_LOCAL(_compiler, _reg) ((_compiler)->regLocal[(_reg) / 64] &= ~(1ULL << ((_reg) % 64)))
+
+/**
+ * @brief Check if a register is a local.
+ *
+ * @param _compiler The compiler instance.
+ * @param _reg The register to check.
+ */
+#define REDUCT_REG_IS_LOCAL(_compiler, _reg) (((_compiler)->regLocal[(_reg) / 64] & (1ULL << ((_reg) % 64))) != 0)
+
+/**
+ * @brief Allocate a new register.
+ *
+ * @param compiler The compiler context.
+ * @return The allocated register index.
+ */
+REDUCT_API reduct_reg_t reduct_reg_alloc(reduct_compiler_t* compiler);
+
+/**
+ * @brief Allocate a range of registers.
+ *
+ * @param compiler The compiler context.
+ * @param count The number of registers to allocate.
+ * @return The first register index in the allocated range.
+ */
+REDUCT_API reduct_reg_t reduct_reg_alloc_range(reduct_compiler_t* compiler, reduct_uint32_t count);
+
+/**
+ * @brief Free a register.
+ *
+ * @param compiler The compiler context.
+ * @param reg The register index to free.
+ */
+REDUCT_API void reduct_reg_free(reduct_compiler_t* compiler, reduct_reg_t reg);
+
+/**
+ * @brief Free a range of registers.
+ *
+ * @param compiler The compiler context.
+ * @param start The first register index in the range to free.
+ * @param count The number of registers to free.
+ */
+REDUCT_API void reduct_reg_free_range(reduct_compiler_t* compiler, reduct_reg_t start, reduct_uint32_t count);
+
+/**
+ * @brief Create a `REDUCT_MODE_NONE` mode expression.
+ */
+#define REDUCT_EXPR_NONE() ((reduct_expr_t){.mode = REDUCT_MODE_NONE})
+
+/**
+ * @brief Create a `REDUCT_MODE_REG` mode expression.
+ *
+ * @param _reg The register index.
+ */
+#define REDUCT_EXPR_REG(_reg) ((reduct_expr_t){.mode = REDUCT_MODE_REG, .reg = (_reg)})
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression.
+ *
+ * @param _const The constant index.
+ */
+#define REDUCT_EXPR_CONST(_const) ((reduct_expr_t){.mode = REDUCT_MODE_CONST, .constant = (_const)})
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for a specific item.
+ *
+ * @param _compiler The compiler context.
+ * @param _item The item to look up.
+ */
+#define REDUCT_EXPR_CONST_ITEM(_compiler, _item) \
+    REDUCT_EXPR_CONST(reduct_function_lookup_constant((_compiler)->reduct, (_compiler)->function, \
+        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, .item = (_item)}))
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for a specific atom.
+ *
+ * @param _compiler The compiler context.
+ * @param _atom The atom to look up.
+ */
+#define REDUCT_EXPR_CONST_ATOM(_compiler, _atom) \
+    REDUCT_EXPR_CONST(reduct_function_lookup_constant((_compiler)->reduct, (_compiler)->function, \
+        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, .item = REDUCT_CONTAINER_OF(_atom, reduct_item_t, atom)}))
+
+/**
+ * @brief Create a `REDUCT_MODE_TARGET` mode expression.
+ *
+ * @param _reg The target register hint.
+ */
+#define REDUCT_EXPR_TARGET(_reg) ((reduct_expr_t){.mode = REDUCT_MODE_TARGET, .reg = (_reg)})
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for the true constant.
+ *
+ * @param _compiler The compiler context.
+ */
+#define REDUCT_EXPR_TRUE(_compiler) \
+    REDUCT_EXPR_CONST(reduct_function_lookup_constant((_compiler)->reduct, (_compiler)->function, \
+        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, .item = (_compiler)->reduct->trueItem}))
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for the false constant.
+ *
+ * @param _compiler The compiler context.
+ */
+#define REDUCT_EXPR_FALSE(_compiler) \
+    REDUCT_EXPR_CONST(reduct_function_lookup_constant((_compiler)->reduct, (_compiler)->function, \
+        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, .item = (_compiler)->reduct->falseItem}))
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for the nil constant.
+ *
+ * @param _compiler The compiler context.
+ */
+#define REDUCT_EXPR_NIL(_compiler) \
+    REDUCT_EXPR_CONST(reduct_function_lookup_constant((_compiler)->reduct, (_compiler)->function, \
+        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, .item = (_compiler)->reduct->nilItem}))
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for an integer.
+ *
+ * @param _compiler The compiler context.
+ * @param _val The integer value.
+ */
+#define REDUCT_EXPR_INT(_compiler, _val) REDUCT_EXPR_CONST_ATOM(_compiler, reduct_atom_lookup_int((_compiler)->reduct, (_val)))
+
+/**
+ * @brief Get the target register index from an expression, or -1 if no target is specified.
+ * @param _expr The expression to check.
+ */
+#define REDUCT_EXPR_GET_TARGET(_expr) (((_expr)->mode == REDUCT_MODE_TARGET) ? (_expr)->reg : (reduct_reg_t)-1)
+
+/**
+ * @brief Create a `REDUCT_MODE_CONST` mode expression for a float.
+ *
+ * @param _compiler The compiler context.
+ * @param _val The float value.
+ */
+#define REDUCT_EXPR_FLOAT(_compiler, _val) REDUCT_EXPR_CONST_ATOM(_compiler, reduct_atom_lookup_float((_compiler)->reduct, (_val)))
+
+/**
+ * @brief Compiles a single Reduct item into an expression descriptor.
+ *
+ * @param compiler The compiler context.
+ * @param item The item to compile.
+ * @param Output pointer for the compiled expression.
+ */
+REDUCT_API void reduct_expr_build(reduct_compiler_t* compiler, reduct_item_t* item, reduct_expr_t* out);
+
+/**
+ * @brief Free resources associated with an expression descriptor.
+ *
+ * @param compiler The compiler context.
+ * @param expr The expression to free.
+ */
+static inline void reduct_expr_done(reduct_compiler_t* compiler, reduct_expr_t* expr)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(expr != REDUCT_NULL);
+    if (expr->mode == REDUCT_MODE_REG)
+    {
+        reduct_reg_free(compiler, expr->reg);
+    }
+}
+
+/**
+ * @brief Allocate a new register, favoring the output expression's target if provided.
+ *
+ * @param compiler The compiler context.
+ * @param out The output expression which may contain a target hint.
+ * @return The allocated register index.
+ */
+static inline reduct_reg_t reduct_expr_get_reg(reduct_compiler_t* compiler, reduct_expr_t* out)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    if (out != REDUCT_NULL && out->mode == REDUCT_MODE_TARGET)
+    {
+        return out->reg;
+    }
+    return reduct_reg_alloc(compiler);
+}
+
+/**
+ * @brief Get the first unallocated register index.
+ *
+ * @param compiler The compiler context.
+ * @return The first register index that is not currently allocated.
+ */
+static inline reduct_reg_t reduct_reg_get_base(reduct_compiler_t* compiler)
+{
+    for (reduct_int32_t i = REDUCT_REGISTER_MAX - 1; i >= 0; i--)
+    {
+        if (REDUCT_REG_IS_ALLOCATED(compiler, i))
+        {
+            return (reduct_reg_t)(i + 1);
+        }
+    }
+    return 0;
+}
+
+/**
+ * @brief Check if a local variable has finished being defined.
+ *
+ * If the local variable is not defined, then we are currently within the expression that defines it.
+ *
+ * @param _local The local variable descriptor.
+ */
+#define REDUCT_LOCAL_IS_DEFINED(_local) ((_local)->expr.mode != REDUCT_MODE_NONE)
+
+/**
+ * @brief Define a new local variable.
+ *
+ * @note The `reduct_local_def_done()` function must be called after this one.
+ *
+ * @param compiler The compiler context.
+ * @param name The name of the local.
+ * @return A pointer to the local variable descriptor.
+ */
+REDUCT_API reduct_local_t* reduct_local_def(reduct_compiler_t* compiler, reduct_atom_t* name);
+
+/**
+ * @brief Finalize a local variable definition with its value expression.
+ *
+ * @param compiler The compiler context.
+ * @param local The local variable descriptor.
+ * @param expr The expression representing the local's value.
+ */
+REDUCT_API void reduct_local_def_done(reduct_compiler_t* compiler, reduct_local_t* local, reduct_expr_t* expr);
+
+/**
+ * @brief Add a function argument local to the compiler context.
+ *
+ * @param compiler The compiler context.
+ * @param name The name of the argument.
+ * @return A pointer to the local variable descriptor.
+ */
+REDUCT_API reduct_local_t* reduct_local_add_arg(reduct_compiler_t* compiler, reduct_atom_t* name);
+
+/**
+ * @brief Look up a local by name and return its expression.
+ *
+ * @param compiler The compiler context.
+ * @param name The name of the local.
+ * @return A pointer to the local variable descriptor, or `REDUCT_NULL` if not found.
+ */
+REDUCT_API reduct_local_t* reduct_local_lookup(reduct_compiler_t* compiler, reduct_atom_t* name);
+
+/**
+ * @brief Emits an instruction to the current function.
+ *
+ * @param compiler The compiler context.
+ * @param inst The instruction to emit.
+ */
+static inline void reduct_compile_inst(reduct_compiler_t* compiler, reduct_inst_t inst)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    reduct_uint32_t pos = compiler->lastItem != REDUCT_NULL ? compiler->lastItem->position : 0;
+    reduct_function_emit(compiler->reduct, compiler->function, inst, pos);
+}
+
+/**
+ * @brief Emits a `REDUCT_OPCODE_LIST` instruction, that creates a list in the target register.
+ *
+ * @param compiler The compiler context.
+ * @param target The target register.
+ */
+static inline void reduct_compile_list(reduct_compiler_t* compiler, reduct_reg_t target)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ABC(REDUCT_OPCODE_LIST, target, 0, 0));
+}
+
+/**
+ * @brief Emits a `REDUCT_OPCODE_CALL` instruction, that returns its result in the target register.
+ *
+ * @param compiler The compiler context.
+ * @param target The target register.
+ * @param callable The callable expression.
+ * @param arity The number of arguments.
+ */
+static inline void reduct_compile_call(reduct_compiler_t* compiler, reduct_reg_t target, reduct_expr_t* callable,
+    reduct_uint32_t arity)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(callable != REDUCT_NULL);
+    REDUCT_ASSERT(callable->mode == REDUCT_MODE_REG || callable->mode == REDUCT_MODE_CONST);
+    reduct_compile_inst(compiler,
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_CALL | callable->mode), target, arity, callable->value));
+}
+
+/**
+ * @brief Emits a `REDUCT_OPCODE_MOVE` instruction, that moves the value of the source expression to the target register.
+ *
+ * @param compiler The compiler context.
+ * @param target The target register.
+ * @param expr The source expression.
+ */
+static inline void reduct_compile_move(reduct_compiler_t* compiler, reduct_reg_t target, reduct_expr_t* expr)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(expr != REDUCT_NULL);
+    REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
+    reduct_compile_inst(compiler,
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_MOV | expr->mode), target, 0, expr->value));
+}
+
+/**
+ * @brief Emits a jump instruction without a target offset.
+ *
+ * @param compiler The compiler context.
+ * @param op The jump opcode (e.g., `REDUCT_OPCODE_JMP`, `REDUCT_OPCODE_JMPT`, `REDUCT_OPCODE_JMPF`).
+ * @param a The register to test (if not `REDUCT_OPCODE_JMP`).
+ * @return The index of the emitted instruction to be patched later.
+ */
+static inline reduct_size_t reduct_compile_jump(reduct_compiler_t* compiler, reduct_opcode_t op, reduct_reg_t a)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    reduct_size_t pos = compiler->function->instCount;
+    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ASBX(op, a, 0));
+    return pos;
+}
+
+/**
+ * @brief Patch a previously emitted jump instruction to point to the current instruction.
+ *
+ * @param compiler The compiler context.
+ * @param pos The index of the jump instruction to patch.
+ */
+static inline void reduct_compile_jump_patch(reduct_compiler_t* compiler, reduct_size_t pos)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    reduct_int32_t offset = (reduct_int32_t)(compiler->function->instCount - pos - 1);
+    compiler->function->insts[pos] = REDUCT_INST_SET_SBX(compiler->function->insts[pos], offset);
+}
+
+/**
+ * @brief Patch a list of jump instructions to point to the current instruction.
+ *
+ * @param compiler The compiler context.
+ * @param jumps Array of jump instruction indices.
+ * @param count Number of jumps in the array.
+ */
+static inline void reduct_compile_jump_patch_list(reduct_compiler_t* compiler, reduct_size_t* jumps, reduct_size_t count)
+{
+    for (reduct_size_t i = 0; i < count; i++)
+    {
+        reduct_compile_jump_patch(compiler, jumps[i]);
+    }
+}
+
+/**
+ * @brief Emits a move instruction or allocates a new register if the expression is not already in a register.
+ *
+ * @param compiler The compiler context.
+ * @param expr The expression to move or allocate.
+ * @return The register where the value is stored.
+ */
+static inline reduct_reg_t reduct_compile_move_or_alloc(reduct_compiler_t* compiler, reduct_expr_t* expr)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(expr != REDUCT_NULL);
+    REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
+    if (expr->mode == REDUCT_MODE_REG)
+    {
+        return expr->reg;
+    }
+
+    reduct_reg_t target = reduct_reg_alloc(compiler);
+    reduct_compile_move(compiler, target, expr);
+    *expr = REDUCT_EXPR_REG(target);
+    return target;
+}
+
+/**
+ * @brief Emits a `REDUCT_OPCODE_RET` instruction.
+ *
+ * @param compiler The compiler context.
+ * @param expr The expression to return.
+ */
+static inline void reduct_compile_return(reduct_compiler_t* compiler, reduct_expr_t* expr)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(expr != REDUCT_NULL);
+
+    if (expr->mode == REDUCT_MODE_REG)
+    {
+        reduct_reg_t retReg = expr->reg;
+        reduct_uint32_t retInstPos = compiler->function->instCount;
+
+        for (reduct_size_t i = 0; i < retInstPos; i++)
+        {
+            reduct_inst_t inst = compiler->function->insts[i];
+            reduct_opcode_t op = REDUCT_INST_GET_OP_BASE(inst);
+
+            if (op != REDUCT_OPCODE_CALL)
+            {
+                continue;
+            }
+
+            reduct_bool_t isTail = REDUCT_FALSE;
+
+            reduct_size_t curr = i + 1;
+            reduct_reg_t currentReg = REDUCT_INST_GET_A(inst);
+            reduct_bool_t valid = REDUCT_TRUE;
+
+            while (curr < retInstPos)
+            {
+                reduct_inst_t nextInst = compiler->function->insts[curr];
+                reduct_opcode_t nextOp = REDUCT_INST_GET_OP(nextInst);
+                reduct_opcode_t nextOpBase = REDUCT_INST_GET_OP_BASE(nextInst);
+
+                if (nextOp == REDUCT_OPCODE_MOV && REDUCT_INST_GET_A(nextInst) == retReg &&
+                    REDUCT_INST_GET_C(nextInst) == currentReg)
+                {
+                    currentReg = retReg;
+                    curr++;
+                }
+                else if (nextOpBase == REDUCT_OPCODE_JMP)
+                {
+                    reduct_int32_t offset = REDUCT_INST_GET_SBX(nextInst);
+                    if (offset < 0)
+                    {
+                        valid = REDUCT_FALSE;
+                        break;
+                    }
+                    curr = curr + 1 + offset;
+                }
+                else
+                {
+                    valid = REDUCT_FALSE;
+                    break;
+                }
+            }
+
+            if (valid && currentReg == retReg && curr == retInstPos)
+            {
+                isTail = REDUCT_TRUE;
+            }
+
+            if (isTail)
+            {
+                reduct_mode_t mode = (reduct_mode_t)(REDUCT_INST_GET_OP(inst) & REDUCT_MODE_CONST);
+                compiler->function->insts[i] =
+                    (inst & ~REDUCT_INST_MASK_OPCODE) | ((REDUCT_OPCODE_TAILCALL | mode) & REDUCT_INST_MASK_OPCODE);
+            }
+        }
+    }
+
+    if (expr->mode == REDUCT_MODE_NONE)
+    {
+        reduct_expr_t nilExpr = REDUCT_EXPR_NIL(compiler);
+        reduct_uint32_t pos = compiler->lastItem != REDUCT_NULL ? compiler->lastItem->position : 0;
+        reduct_function_emit(compiler->reduct, compiler->function,
+            REDUCT_INST_MAKE_ABC(REDUCT_OPCODE_RET | REDUCT_MODE_CONST, 0, 0, nilExpr.constant), pos);
+        return;
+    }
+
+    REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
+    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_RET | expr->mode), 0, 0, expr->value));
+}
+
+/**
+ * @brief Emits an `REDUCT_OPCODE_APPEND` instruction.
+ *
+ * @param compiler The compiler context.
+ * @param target The target list register.
+ * @param expr The expression to append.
+ */
+static inline void reduct_compile_append(reduct_compiler_t* compiler, reduct_reg_t target, reduct_expr_t* expr)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(expr != REDUCT_NULL);
+    REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
+    reduct_compile_inst(compiler,
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_APPEND | expr->mode), target, 0, expr->value));
+}
+
+/**
+ * @brief Emits a comparison, arithmetic or bitwise instruction.
+ *
+ * @param compiler The compiler context.
+ * @param opBase The base opcode (without a mode) for the operation (e.g, `REDUCT_OPCODE_ADD`, `REDUCT_OPCODE_EQ`).
+ * @param target The target register.
+ * @param left The left operand register.
+ * @param right The right operand expression.
+ */
+static inline void reduct_compile_binary(reduct_compiler_t* compiler, reduct_opcode_t opBase, reduct_reg_t target,
+    reduct_reg_t left, reduct_expr_t* right)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(right != REDUCT_NULL);
+    REDUCT_ASSERT(right->mode == REDUCT_MODE_REG || right->mode == REDUCT_MODE_CONST);
+    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ABC((reduct_opcode_t)(opBase | right->mode), target, left, right->value));
+}
+
+/**
+ * @brief Emits a `REDUCT_OPCODE_CLOSURE` instruction.
+ *
+ * @param compiler The compiler context.
+ * @param target The target register.
+ * @param funcConst The constant index of the function prototype.
+ */
+static inline void reduct_compile_closure(reduct_compiler_t* compiler, reduct_reg_t target, reduct_const_t funcConst)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ABC(REDUCT_OPCODE_CLOSURE, target, 0, funcConst));
+}
+
+/**
+ * @brief Emits a `REDUCT_OPCODE_CAPTURE` instruction.
+ *
+ * @param compiler The compiler context.
+ * @param closureReg The register containing the closure.
+ * @param slot The constant slot index in the closure to capture into.
+ * @param expr The expression to be captured.
+ */
+static inline void reduct_compile_capture(reduct_compiler_t* compiler, reduct_reg_t closureReg, reduct_uint32_t slot,
+    reduct_expr_t* expr)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    REDUCT_ASSERT(expr != REDUCT_NULL);
+    REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
+    reduct_compile_inst(compiler,
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_CAPTURE | expr->mode), closureReg, slot, expr->value));
+}
+
+#endif

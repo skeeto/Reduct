@@ -1,0 +1,61 @@
+#ifndef REDUCT_CLOSURE_IMPL_H
+#define REDUCT_CLOSURE_IMPL_H 1
+
+#include "closure.h"
+#include "handle.h"
+#include "item.h"
+
+REDUCT_API void reduct_closure_deinit(reduct_closure_t* closure)
+{
+    REDUCT_ASSERT(closure != REDUCT_NULL);
+    if (closure->constants != closure->smallConstants)
+    {
+        REDUCT_FREE(closure->constants);
+    }
+}
+
+REDUCT_API reduct_closure_t* reduct_closure_new(struct reduct* reduct, reduct_function_t* function)
+{
+    REDUCT_ASSERT(reduct != REDUCT_NULL);
+    REDUCT_ASSERT(function != REDUCT_NULL);
+
+    reduct_item_t* item = reduct_item_new(reduct);
+    item->type = REDUCT_ITEM_TYPE_CLOSURE;
+    reduct_closure_t* closure = &item->closure;
+    closure->function = function;
+    if (function->constantCount <= REDUCT_CLOSURE_SMALL_MAX)
+    {
+        closure->constants = closure->smallConstants;
+    }
+    else
+    {
+        closure->constants = (reduct_handle_t*)REDUCT_MALLOC(sizeof(reduct_handle_t) * function->constantCount);
+    }
+
+    for (reduct_uint16_t i = 0; i < function->constantCount; i++)
+    {
+        if (function->constants[i].type != REDUCT_CONST_SLOT_ITEM)
+        {
+            closure->constants[i] = REDUCT_HANDLE_NONE;
+            continue;
+        }
+
+        reduct_item_t* item = function->constants[i].item;
+        if (item->flags & REDUCT_ITEM_FLAG_INT_SHAPED)
+        {
+            closure->constants[i] = REDUCT_HANDLE_FROM_INT(item->atom.integerValue);
+        }
+        else if (item->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED)
+        {
+            closure->constants[i] = REDUCT_HANDLE_FROM_FLOAT(item->atom.floatValue);
+        }
+        else
+        {
+            closure->constants[i] = REDUCT_HANDLE_FROM_ITEM(item);
+        }
+    }
+
+    return closure;
+}
+
+#endif

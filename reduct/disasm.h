@@ -1,0 +1,26 @@
+#ifndef REDUCT_DISASM_H
+#define REDUCT_DISASM_H 1
+
+#include "compile.h"
+#include "core.h"
+
+/**
+ * @brief Reduct bytecode disassembly.
+ * @defgroup disasm Disassembly
+ * @file disasm.h
+ *
+ * @{
+ */
+
+/**
+ * @brief Disassembles a compiled function.
+ *
+ * @param reduct The Reduct structure.
+ * @param function The compiled function to disassemble.
+ * @param out The output file stream to write the disassembly to.
+ */
+REDUCT_API void reduct_disasm(reduct_t* reduct, reduct_function_t* function, reduct_file_t out);
+
+/** @} */
+
+#endif

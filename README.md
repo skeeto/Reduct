@@ -1,33 +1,33 @@
 
-# Simple Computable Ordered Notation (SCON)
+# Reduct
 
 <br>
 <div align="center">
-    <a href="https://github.com/KaiNorberg/SCON/issues">
-      <img src="https://img.shields.io/github/issues/KaiNorberg/SCON">
+    <a href="https://github.com/KaiNorberg/Reduct/issues">
+      <img src="https://img.shields.io/github/issues/KaiNorberg/Reduct">
     </a>
-    <a href="https://github.com/KaiNorberg/SCON/network">
-      <img src="https://img.shields.io/github/forks/KaiNorberg/SCON">
+    <a href="https://github.com/KaiNorberg/Reduct/network">
+      <img src="https://img.shields.io/github/forks/KaiNorberg/Reduct">
     </a>
-    <a href="https://github.com/KaiNorberg/SCON/stargazers">
-      <img src="https://img.shields.io/github/stars/KaiNorberg/SCON">
+    <a href="https://github.com/KaiNorberg/Reduct/stargazers">
+      <img src="https://img.shields.io/github/stars/KaiNorberg/Reduct">
     </a>
-    <a href="https://github.com/KaiNorberg/SCON/blob/main/license">
-      <img src="https://img.shields.io/github/license/KaiNorberg/SCON">
+    <a href="https://github.com/KaiNorberg/Reduct/blob/main/license">
+      <img src="https://img.shields.io/github/license/KaiNorberg/Reduct">
     </a>
     <br>
 </div>
 <br>
 
-SCON is a functional, immutable, and S-expression based configuration and scripting language. It aims to provide a flexible, simple, efficient and Turing complete way to store and manipulate hierarchical data, all as a freestanding C99 header-only library.
+Reduct is a functional, immutable, and S-expression based configuration and scripting language. It aims to provide a flexible, simple, efficient and Turing complete way to store and manipulate hierarchical data, all as a freestanding C99 header-only library.
 
 ## First Steps
 
-SCON should be familiar to anyone used to Lisp or functional languages, but it is intended to be easy to learn even for those who aren't.
+Reduct should be familiar to anyone used to Lisp or functional languages, but it is intended to be easy to learn even for those who aren't.
 
-All expressions in SCON are either atoms or lists of atoms, and the process of evaluating expressions ought to be thought of as reducing these expressions into a simpler form. Much like how mathematical expressions are reduced to their final values.
+All expressions in Reduct are either atoms or lists of atoms, and the process of evaluating expressions ought to be thought of as reducing these expressions into a simpler form. Much like how mathematical expressions are reduced to their final values.
 
-For example, the following SCON expression:
+For example, the following Reduct expression:
 
 ```lisp
 (+ 1 2)
@@ -38,7 +38,7 @@ Will evaluate to `(3 12)`. Note how the result of the evaluation is a list conta
 
 ### Hello World
 
-An obvious way to write "Hello World" in SCON might look like:
+An obvious way to write "Hello World" in Reduct might look like:
 
 ```lisp
 (println! "Hello, World!")
@@ -112,21 +112,21 @@ Use `kebab-case` for variable and function names.
 
 ### Command Line Interface (CLI)
 
-A simple CLI tool is provided to evaluate SCON files or expressions directly from the terminal.
+A simple CLI tool is provided to evaluate Reduct files or expressions directly from the terminal.
 
 ```bash
-scon my_file.scon
-scon -e "(+ 1 2 3)"
-scon -d my_file.scon # output the compiled bytecode
-scon -s my_file.scon # silent mode, wont output the result of the evaluation
+reduct my_file.reduct
+reduct -e "(+ 1 2 3)"
+reduct -d my_file.reduct # output the compiled bytecode
+reduct -s my_file.reduct # silent mode, wont output the result of the evaluation
 ```
 
 #### Setup
 
-The CLI tool can be found at `tools/scon/` and uses CMake. To build the tool write:
+The CLI tool can be found at `tools/reduct-cli/` and uses CMake. To build the tool write:
 
 ```bash
-cd tools/scon
+cd tools/reduct-cli
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
@@ -139,25 +139,25 @@ cmake --install build # if that fails: sudo cmake --install build
 
 ### Visual Studio Code
 
-A syntax highlighting extension for Visual Studio Code can be found at `tools/scon-vscode/`.
+A syntax highlighting extension for Visual Studio Code can be found at `tools/reduct-vscode/`.
 
 #### Setup
 
 The extension is not yet available in the marketplace.
 
-As such, to install it, copy the `tools/scon-vscode/` directory to `%USERPROFILE%\.vscode\extensions\` if you're on Windows or `~/.vscode/extensions/` if you're on macOS/Linux.
+As such, to install it, copy the `tools/reduct-vscode/` directory to `%USERPROFILE%\.vscode\extensions\` if you're on Windows or `~/.vscode/extensions/` if you're on macOS/Linux.
 
 Finally, restart Visual Studio Code.
 
 ## C API
 
-Included is an example of using SCON as a single header without linking:
+Included is an example of using Reduct as a single header without linking:
 
 ```c
 // my_file.c
 
-#define SCON_INLINE
-#include "scon.h"
+#define REDUCT_INLINE
+#include "reduct.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -166,39 +166,39 @@ char buffer[0x10000];
 
 int main(int argc, char **argv)
 {    
-    scon_t* scon = NULL;
+    reduct_t* reduct = NULL;
 
-    scon_error_t error = SCON_ERROR();
-    if (SCON_ERROR_CATCH(&error))
+    reduct_error_t error = REDUCT_ERROR();
+    if (REDUCT_ERROR_CATCH(&error))
     {
-        scon_error_print(&error, stderr);
-        scon_free(scon);
+        reduct_error_print(&error, stderr);
+        reduct_free(reduct);
         return 1;
     }
 
-    scon = scon_new(&error);
+    reduct = reduct_new(&error);
 
-    scon_handle_t ast = scon_parse_file(scon, "my_file.scon");
+    reduct_handle_t ast = reduct_parse_file(reduct, "my_file.reduct");
 
-    scon_stdlib_register(scon, SCON_STDLIB_ALL);
+    reduct_stdlib_register(reduct, REDUCT_STDLIB_ALL);
 
-    scon_function_t* function = scon_compile(scon, &ast);
+    reduct_function_t* function = reduct_compile(reduct, &ast);
 
-    scon_handle_t result = scon_eval(scon, function);
-    scon_stringify(scon, &result, buffer, sizeof(buffer));
+    reduct_handle_t result = reduct_eval(reduct, function);
+    reduct_stringify(reduct, &result, buffer, sizeof(buffer));
     printf("%s\n", buffer);
 
-    scon_free(scon);
+    reduct_free(reduct);
     return 0;
 }
 ```
 
-Included is another example of using SCON with linking where an additional implementation file is used to build the SCON parser and evaluator:
+Included is another example of using Reduct with linking where an additional implementation file is used to build the Reduct parser and evaluator:
 
 ```c
 // my_file.c
 
-#include "scon.h"
+#include "reduct.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -212,74 +212,74 @@ int main(int argc, char **argv)
 ```
 
 ```c
-// my_scon.c
+// my_reduct.c
 
-#define SCON_IMPL
-#include "scon.h"
+#define REDUCT_IMPL
+#include "reduct.h"
 ```
 
 ### C Natives
 
-SCON allows for the registration of C functions as "natives" that can be called from within SCON.
+Reduct allows for the registration of C functions as "natives" that can be called from within Reduct.
 
-To register a native function, use the `scon_native_register` function:
+To register a native function, use the `reduct_native_register` function:
 
 ```c
-scon_handle_t my_native(scon_t* scon, scon_size_t argc, scon_handle_t* argv)
+reduct_handle_t my_native(reduct_t* reduct, reduct_size_t argc, reduct_handle_t* argv)
 {
     // ...
-    return scon_handle_nil(scon);
+    return reduct_handle_nil(reduct);
 }
 
 // ...
 
-scon_native_t natives[] = {
+reduct_native_t natives[] = {
     {"my-native", my_native},
 };
-scon_native_register(scon, natives, sizeof(natives) / sizeof(scon_native_t));
+reduct_native_register(reduct, natives, sizeof(natives) / sizeof(reduct_native_t));
 ```
 
-All SCON standard library functions are available in C, for example, `scon_is_atom()`, `scon_assoc()`, etc.
+All Reduct standard library functions are available in C, for example, `reduct_is_atom()`, `reduct_assoc()`, etc.
 
 ## Implementation
 
-SCON is implemented as a register-based bytecode language, where the SCON source is first parsed into an Abstract Syntax Tree (AST) and then compiled into a custom bytecode format before being executed by the virtual machine/evaluator.
+Reduct is implemented as a register-based bytecode language, where the Reduct source is first parsed into an Abstract Syntax Tree (AST) and then compiled into a custom bytecode format before being executed by the virtual machine/evaluator.
 
-> Note that the "Abstract Syntax Tree" is just a SCON expression, lists and atoms, meaning that the compiler is itself written to operate on the same data structures as the evaluator produces.
+> Note that the "Abstract Syntax Tree" is just a Reduct expression, lists and atoms, meaning that the compiler is itself written to operate on the same data structures as the evaluator produces.
 
 The bytecode format itself is a stream of 32bit instructions, with all instructions able to read/write to an array of registers, or read from an array of constants.
 
-*See [inst.h](https://github.com/KaiNorberg/SCON/blob/main/scon/inst.h) for more information on instructions.*
+*See [inst.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/inst.h) for more information on instructions.*
 
-Since SCON is immutable, the constants array is also used for "captured" values from outer scopes (closures) and we can also allow the compiler to fold constant expressions at compile-time, far more than would normally be possible.
+Since Reduct is immutable, the constants array is also used for "captured" values from outer scopes (closures) and we can also allow the compiler to fold constant expressions at compile-time, far more than would normally be possible.
 
-*See [compile.h](https://github.com/KaiNorberg/SCON/blob/main/scon/compile.h) for more information on the compiler.*
+*See [compile.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/compile.h) for more information on the compiler.*
 
-To improve caching and reduce pointer indirection, SCON uses "handles" (`scon_handle_t`) which are [Tagged Pointers](https://en.wikipedia.org/wiki/Tagged_pointer) using NaN boxing to allow a single 64bit value to store either a 48 bit signed integer, IEEE 754 double or a pointer to a heap allocated item.
+To improve caching and reduce pointer indirection, Reduct uses "handles" (`reduct_handle_t`) which are [Tagged Pointers](https://en.wikipedia.org/wiki/Tagged_pointer) using NaN boxing to allow a single 64bit value to store either a 48 bit signed integer, IEEE 754 double or a pointer to a heap allocated item.
 
-*See [handle.h](https://github.com/KaiNorberg/SCON/blob/main/scon/handle.h) for more information on handles.*
+*See [handle.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/handle.h) for more information on handles.*
 
-Items (`scon_item_t`) represent all heap allocated objects, such as lists, atoms and closures. All items are exactly 64 bytes in size and allocated using a custom pool allocator and freed using a garbage collector and free list.
+Items (`reduct_item_t`) represent all heap allocated objects, such as lists, atoms and closures. All items are exactly 64 bytes in size and allocated using a custom pool allocator and freed using a garbage collector and free list.
 
-Since SCON uses its handles to store most integers and floats, it can avoid heap allocations for many common values, significantly reducing the pressure on the garbage collector and improving caching.
+Since Reduct uses its handles to store most integers and floats, it can avoid heap allocations for many common values, significantly reducing the pressure on the garbage collector and improving caching.
 
-*See [item.h](https://github.com/KaiNorberg/SCON/blob/main/scon/item.h) for more information on items.*
+*See [item.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/item.h) for more information on items.*
 
 Lists are implemented as a "bit-mapped vector trie", providing $O(log_{w} n)$ access, insertion, and deletion, where $O(log_{w} n)$ is the width of each node in the trie.
 
-*See [list.h](https://github.com/KaiNorberg/SCON/blob/main/scon/list.h) for more information on lists.*
+*See [list.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/list.h) for more information on lists.*
 
 All atoms use [String Interning](https://en.wikipedia.org/wiki/String_interning), meaning that every unique atom is only stored once in memory. This makes any string comparison into a single pointer comparison, and it means that parsing the integer/floating point value of an atom or an items truthiness only needs to be done once.
 
-*See [atom.h](https://github.com/KaiNorberg/SCON/blob/main/scon/atom.h) for more information on atoms.*
+*See [atom.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/atom.h) for more information on atoms.*
 
 Many additional optimization techniques are used, for example, [Computed Gotos](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables), [setjmp](https://man7.org/linux/man-pages/man3/longjmp.3.html) based error handling to avoid excessive error checking in the hot path, [Tail Call Optimization](https://en.wikipedia.org/wiki/Tail_call) and much more.
 
-*See [eval.h](https://github.com/KaiNorberg/SCON/blob/main/scon/eval.h) for more information on the evaluator.*
+*See [eval.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/eval.h) for more information on the evaluator.*
 
 ## Benchmarks
 
-Included below are a handful of benchmarks comparing SCON with python 3.14.3 and Lua 5.4.8 using hyperfine, all benchmarks were performed in Fedora 43 (6.19.11-200.fc43.x86_64).
+Included below are a handful of benchmarks comparing Reduct with python 3.14.3 and Lua 5.4.8 using hyperfine, all benchmarks were performed in Fedora 43 (6.19.11-200.fc43.x86_64).
 
 ### Fib35
 
@@ -287,7 +287,7 @@ Finds the 35th Fibonacci number without tail call optimization.
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `scon bench/fib35.scon` | 550.2 ± 11.0 | 535.5 | 572.8 | 1.00 |
+| `reduct bench/fib35.reduct` | 550.2 ± 11.0 | 535.5 | 572.8 | 1.00 |
 | `lua bench/fib35.lua` | 826.8 ± 38.6 | 769.7 | 900.2 | 1.50 ± 0.08 |
 | `python bench/fib35.py` | 1109.4 ± 14.7 | 1085.3 | 1136.0 | 2.02 ± 0.05 |
 
@@ -295,7 +295,7 @@ For this benchmark, memory usage was also tracked using `heaptrack`:
 
 | Command | Peak Memory [MB] |
 |:---|---:|
-| `scon bench/fib35.scon` | 0.097 |
+| `reduct bench/fib35.reduct` | 0.097 |
 | `lua bench/fib35.lua` | 0.099 |
 | `python bench/fib35.py` | 1.8 |
 
@@ -305,7 +305,7 @@ Finds the 65th Fibonacci number with tail call optimization.
 
 | Command | Mean [µs] | Min [µs] | Max [µs] | Relative |
 |:---|---:|---:|---:|---:|
-| `scon bench/fib65.scon` | 613.9 ± 90.6 | 535.1 | 3310.0 | 1.00 |
+| `reduct bench/fib65.reduct` | 613.9 ± 90.6 | 535.1 | 3310.0 | 1.00 |
 | `lua bench/fib65.lua` | 1049.5 ± 165.0 | 920.3 | 2663.3 | 1.71 ± 0.37 |
 | `python bench/fib65.py` | 13155.4 ± 1254.2 | 11688.3 | 23926.9 | 21.43 ± 3.76 |
 
@@ -317,14 +317,14 @@ A simple jump-table optimized Brainfuck interpreter that runs a "Hello World!" p
 
 | Command | Mean [µs] | Min [µs] | Max [µs] | Relative |
 |:---|---:|---:|---:|---:|
-| `scon bench/brainfuck.scon` | 794.3 ± 101.8 | 720.6 | 1779.7 | 1.00 |
+| `reduct bench/brainfuck.reduct` | 794.3 ± 101.8 | 720.6 | 1779.7 | 1.00 |
 | `lua bench/brainfuck.lua` | 1112.1 ± 146.5 | 1022.6 | 2359.5 | 1.40 ± 0.26 |
 
 For this benchmark, memory usage was also tracked using `heaptrack`:
 
 | Command | Peak Memory [MB] |
 |:---|---:|
-| `scon bench/brainfuck.scon` | 0.185 |
+| `reduct bench/brainfuck.reduct` | 0.185 |
 | `lua bench/brainfuck.lua` | 0.102 |
 
 ### Mandelbrot
@@ -333,12 +333,12 @@ Outputs an 80 by 40 visualization of the Mandelbrot set with 10000 iterations.
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `scon bench/mandelbrot.scon` | 330.7 ± 8.3 | 318.0 | 347.3 | 1.00 |
+| `reduct bench/mandelbrot.reduct` | 330.7 ± 8.3 | 318.0 | 347.3 | 1.00 |
 | `lua bench/mandelbrot.lua` | 369.2 ± 14.3 | 356.5 | 403.3 | 1.12 ± 0.05 |
 
 ## Grammar
 
-The grammar of SCON is designed to be as straight forward as possible, the full grammar using [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) can be found below.
+The grammar of Reduct is designed to be as straight forward as possible, the full grammar using [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) can be found below.
 
 ```ebnf
 file = { expression | comment } ;
@@ -430,15 +430,15 @@ The following table lists the supported operators:
 
 ## Evaluation
 
-A parsed SCON expression can optionally be evaluated. This means that everything described below is an optional extension
-of the language, not a core part of it, and should be considered as such. This can be quite convenient as it allows SCON to be utilized as a simple and efficient markup language similar to JSON or XML.
+A parsed Reduct expression can optionally be evaluated. This means that everything described below is an optional extension
+of the language, not a core part of it, and should be considered as such. This can be quite convenient as it allows Reduct to be utilized as a simple and efficient markup language similar to JSON or XML.
 
 Evaluation is the process of recursively reducing an expression to its simplest form in a depth-first, left-to-right
 manner.
 
 ### Callables
 
-There are three callable types, intrinsics, natives and lambdas. Lambdas are defined in SCON, natives are defined in C and intrinsics are handled by the bytecode compiler.
+There are three callable types, intrinsics, natives and lambdas. Lambdas are defined in Reduct, natives are defined in C and intrinsics are handled by the bytecode compiler.
 
 ```ebnf
 callable = unquoted_atom | lambda ;
@@ -446,7 +446,7 @@ callable = unquoted_atom | lambda ;
 
 ### Atoms
 
-There are no integers, floats or similar within SCON, only atoms with different "shapes".
+There are no integers, floats or similar within Reduct, only atoms with different "shapes".
 
 An atom can be either string-shaped, integer-shaped or float-shaped, for convenience an atom that is integer-shaped or float-shaped is also considered number-shaped.
 
@@ -511,7 +511,7 @@ binary_zero  = [ sign ], "0", ( "b" | "B" ), "0", { [ "_" ], "0" } ;
 
 ### Ordering
 
-SCON defines a total ordering for all possible items. This is used by comparison primitives like `<` or `sort`.
+Reduct defines a total ordering for all possible items. This is used by comparison primitives like `<` or `sort`.
 
 The ordering of types is defined as
 
@@ -527,7 +527,7 @@ number < string < list
 
 ### Variables
 
-Variables are used to store and retrieve items within a SCON environment. Variables are defined using the `def`
+Variables are used to store and retrieve items within a Reduct environment. Variables are defined using the `def`
 intrinsic and can be accessed using their names.
 
 As an example, variables can be used to create a more traditional "function definition" by defining a variable as a lambda:
@@ -540,13 +540,13 @@ As an example, variables can be used to create a more traditional "function defi
 
 ### Lexical Scoping
 
-SCON uses lexical scoping. This means that a function or expression can access variables from the scope in which it was defined, as well as any parent scopes. When a variable is defined using `def`, it is added to the current local scope. If a variable is accessed, the evaluator searches for the name starting from the innermost scope and moving outwards to the global scope.
+Reduct uses lexical scoping. This means that a function or expression can access variables from the scope in which it was defined, as well as any parent scopes. When a variable is defined using `def`, it is added to the current local scope. If a variable is accessed, the evaluator searches for the name starting from the innermost scope and moving outwards to the global scope.
 
 When a lambda is executed, it creates a new scope where its arguments are bound to the provided values. This scope is destroyed once the lambda finishes evaluation, ensuring that local variables do not leak into the outer environment.
 
 ### Default Constants
 
-The following constants are defined by default in the SCON environment:
+The following constants are defined by default in the Reduct environment:
 
 | Constant | Value |
 |----------|-------|
@@ -584,7 +584,7 @@ Returns a threaded expression, where the result of each expression is passed as 
   
 Defines a variable with the given name and value within the current scope.
 
-Note that there is no `let` intrinsic in SCON, this is becouse using `def` within a `do` block acomplishes the same result as a `let` expression in other Lisps, while also avoiding additional indentation and visual seperation which hurts readability.
+Note that there is no `let` intrinsic in Reduct, this is becouse using `def` within a `do` block acomplishes the same result as a `let` expression in other Lisps, while also avoiding additional indentation and visual seperation which hurts readability.
 
 For example:
 
@@ -752,7 +752,7 @@ Will stop evaluating arguments as soon as one is not greater than or equal to th
 
 ### Standard Library
 
-Since SCON is a functional language, side effects should be avoided when possible. As such, any native with side effects will be suffixed with an exclamation mark `!`.
+Since Reduct is a functional language, side effects should be avoided when possible. As such, any native with side effects will be suffixed with an exclamation mark `!`.
 
 #### Error Handling
 
@@ -1047,7 +1047,7 @@ Evaluates the provided item and returns the result.
 
 **`(parse <atom>) -> <expression>`**
 
-Parses the provided string into a SCON expression without evaluating it.
+Parses the provided string into a Reduct expression without evaluating it.
 
 **`(load! <path: string>) -> <item>`**
 

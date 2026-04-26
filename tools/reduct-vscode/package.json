@@ -1,0 +1,39 @@
+{
+    "name": "reduct",
+    "displayName": "Reduct Language Support",
+    "description": "Syntax highlighting and language support for Reduct",
+    "version": "1.0.0",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "keywords": [
+        "reduct",
+        "lisp"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "reduct",
+                "aliases": [
+                    "Reduct",
+                    "reduct"
+                ],
+                "extensions": [
+                    ".reduct",
+                    ".red"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "reduct",
+                "scopeName": "source.reduct",
+                "path": "./syntaxes/reduct.tmLanguage.json"
+            }
+        ]
+    }
+}

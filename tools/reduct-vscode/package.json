@@ -23,7 +23,7 @@
                 ],
                 "extensions": [
                     ".reduct",
-                    ".red"
+                    ".rdt"
                 ],
                 "configuration": "./language-configuration.json"
             }

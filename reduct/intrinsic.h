@@ -35,35 +35,33 @@ typedef reduct_uint8_t reduct_intrinsic_t;
 #define REDUCT_INTRINSIC_THREAD 5 ///< Thread
 #define REDUCT_INTRINSIC_DEF 6    ///< Def
 #define REDUCT_INTRINSIC_IF 7     ///< If
-#define REDUCT_INTRINSIC_WHEN 8   ///< When
-#define REDUCT_INTRINSIC_UNLESS 9 ///< Unless
-#define REDUCT_INTRINSIC_COND 10  ///< Cond
-#define REDUCT_INTRINSIC_MATCH 11 ///< Match
-#define REDUCT_INTRINSIC_AND 12   ///< And
-#define REDUCT_INTRINSIC_OR 13    ///< Or
-#define REDUCT_INTRINSIC_NOT 14   ///< Not
-#define REDUCT_INTRINSIC_ADD 15   ///< Add
-#define REDUCT_INTRINSIC_SUB 16   ///< Sub
-#define REDUCT_INTRINSIC_MUL 17   ///< Mul
-#define REDUCT_INTRINSIC_DIV 18   ///< Div
-#define REDUCT_INTRINSIC_MOD 19   ///< Mod
-#define REDUCT_INTRINSIC_INC 20   ///< Inc
-#define REDUCT_INTRINSIC_DEC 21   ///< Dec
-#define REDUCT_INTRINSIC_BAND 22  ///< Bitwise And
-#define REDUCT_INTRINSIC_BOR 23   ///< Bitwise Or
-#define REDUCT_INTRINSIC_BXOR 24  ///< Bitwise Xor
-#define REDUCT_INTRINSIC_BNOT 25  ///< Bitwise Not
-#define REDUCT_INTRINSIC_SHL 26   ///< Bitwise Shift Left
-#define REDUCT_INTRINSIC_SHR 27   ///< Bitwise Shift Right
-#define REDUCT_INTRINSIC_EQ 28    ///< Equal
-#define REDUCT_INTRINSIC_NEQ 29   ///< Not Equal
-#define REDUCT_INTRINSIC_SEQ 30   ///< Strict Equal
-#define REDUCT_INTRINSIC_SNEQ 31  ///< Strict Not Equal
-#define REDUCT_INTRINSIC_LT 32    ///< Less
-#define REDUCT_INTRINSIC_LE 33    ///< Less Equal
-#define REDUCT_INTRINSIC_GT 34    ///< Greater
-#define REDUCT_INTRINSIC_GE 35    ///< Greater Equal
-#define REDUCT_INTRINSIC_MAX 36   ///< The amount of intrinsics
+#define REDUCT_INTRINSIC_COND 8  ///< Cond
+#define REDUCT_INTRINSIC_MATCH 9 ///< Match
+#define REDUCT_INTRINSIC_AND 10   ///< And
+#define REDUCT_INTRINSIC_OR 11    ///< Or
+#define REDUCT_INTRINSIC_NOT 12   ///< Not
+#define REDUCT_INTRINSIC_ADD 13   ///< Add
+#define REDUCT_INTRINSIC_SUB 14   ///< Sub
+#define REDUCT_INTRINSIC_MUL 15   ///< Mul
+#define REDUCT_INTRINSIC_DIV 16   ///< Div
+#define REDUCT_INTRINSIC_MOD 17   ///< Mod
+#define REDUCT_INTRINSIC_INC 18   ///< Inc
+#define REDUCT_INTRINSIC_DEC 19   ///< Dec
+#define REDUCT_INTRINSIC_BAND 20  ///< Bitwise And
+#define REDUCT_INTRINSIC_BOR 21   ///< Bitwise Or
+#define REDUCT_INTRINSIC_BXOR 22  ///< Bitwise Xor
+#define REDUCT_INTRINSIC_BNOT 23  ///< Bitwise Not
+#define REDUCT_INTRINSIC_SHL 24   ///< Bitwise Shift Left
+#define REDUCT_INTRINSIC_SHR 25   ///< Bitwise Shift Right
+#define REDUCT_INTRINSIC_EQ 26    ///< Equal
+#define REDUCT_INTRINSIC_NEQ 27   ///< Not Equal
+#define REDUCT_INTRINSIC_SEQ 28   ///< Strict Equal
+#define REDUCT_INTRINSIC_SNEQ 29  ///< Strict Not Equal
+#define REDUCT_INTRINSIC_LT 30    ///< Less
+#define REDUCT_INTRINSIC_LE 31    ///< Less Equal
+#define REDUCT_INTRINSIC_GT 32    ///< Greater
+#define REDUCT_INTRINSIC_GE 33    ///< Greater Equal
+#define REDUCT_INTRINSIC_MAX 34   ///< The amount of intrinsics
 
 /**
  * @brief Reduct intrinsic handler function type.
@@ -91,5 +89,16 @@ extern const char* reductIntrinsics[REDUCT_INTRINSIC_MAX];
  * @param reduct The Reduct instance to register intrinsics with.
  */
 REDUCT_API void reduct_intrinsic_register_all(struct reduct* reduct);
+
+/**
+ * @brief Compiles a block of expressions (like a `do` block).
+ *
+ * @param compiler The compiler context.
+ * @param list The list containing the expressions.
+ * @param startIdx The index to start compiling from.
+ * @param out The output expression.
+ */
+void reduct_intrinsic_block_generic(struct reduct_compiler* compiler, struct reduct_item* list, reduct_uint32_t startIdx,
+    struct reduct_expr* out);
 
 #endif

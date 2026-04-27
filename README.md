@@ -71,7 +71,7 @@ For example:
 ("atom1" atom2 3.14 (4atom 5678)) // A list containing three atoms and a list.
 ```
 
-The tree structure that this creates is called an Abstract Syntax Tree (AST), and for some usecases, that will be enough.
+The tree structure that this creates is called an Abstract Syntax Tree (AST), and for some use cases, that will be enough.
 
 The evaluation of an AST is an optional part of the language.
 
@@ -82,17 +82,11 @@ Evaluation is the process of recursively reducing an AST into another, simpler, 
 For example:
 
 ```lisp
-(+ 1 2)
-(* 3 4)
+(+ 1 2) // Evaluates to "3"
+(* 3 4) // Evaluates to "12"
 ```
 
-Will evaluate to:
-
-```lisp
-(3 12)
-```
-
-> Note how the top level expression is implicitly a list.
+> Note how the top level expression is implicitly a `do` block, with the last evaluation being returned.
 
 ### Atoms
 
@@ -133,7 +127,7 @@ An obvious way to write "Hello World" in Reduct might look like:
 (println! "Hello, World!")
 ```
 
-However, since reduct is all about reduction, it could be even simpler. We could simply write:
+However, since Reduct is all about reduction, it could be even simpler. We could simply write:
 
 ```lisp
 "Hello, World!"
@@ -142,6 +136,89 @@ However, since reduct is all about reduction, it could be even simpler. We could
 Which will, of course, evaluate to `Hello, World!`.
 
 For more examples, see the `bench/` and `tests/` directories.
+
+## Why?
+
+There are several series of potential advantages that Reduct offers over existing languages.
+
+### Performance
+
+Reduct is designed to be fast and efficient, utilizing a register-based VM and many other techniques to improve performance, allowing it to outperform even Lua, in some benchmarks.
+
+See [Benchmarks](#benchmarks) for more information.
+
+### Lisps and Readability
+
+Lisps, which Reduct takes heavy inspiration from, are generally agreed to be a very powerful style of language and yet are frequently criticized for their poor readability.
+
+The most often blamed source of this poor readability is the sheer volume of parentheses.
+
+Reduct makes the argument that most of these complaints are due to nesting, not parentheses; that it can be solved via infix notation, banning `let` and a more modern style guide.
+
+Included are three examples of a basic program written in common Lisp C, and Reduct.
+
+#### Lisp
+
+```lisp
+(let ((x 10)
+      (y 20))
+  (let ((z (+ x y)))
+    (* z 2)))
+```
+
+#### C
+
+```c
+int main()
+{
+    int x = 10;
+    int y = 20;
+    int z = x + y;
+    return z * 2;
+}
+```
+
+#### Reduct
+
+```lisp
+(do
+    (def x 10)
+    (def y 20)
+    (def z {x + y})
+    {z * 2}
+)
+```
+
+Note how in Reduct the use of curly braces for infix notation and the `def` intrinsic for scoped definitions allows for a more familiar, imperative-like structure while remaining entirely functional, and S-expression based.
+
+### Flexibility
+
+Just like all Lisps, Reduct is very flexible and homoiconic. This means that code and data are represented using the same structures, which allows Reduct to be used for practically anything.
+
+One of Reducts original intended use cases was for a C UI library, where it would act as both the markup and scripting language, almost like a combination of HTML, CSS and JavaScript.
+
+Included is an example of what that might look like:
+
+```lisp
+(def my-color (lambda ()
+    (if {(uptime!) % 1000 < 500}
+        "red"
+        "blue"
+    )
+))  
+
+("button"
+    ("label" "Click me!")
+    ("on-click" (lambda () (println! "Button clicked!")))
+    ("style" (
+        ("color" (my-color))
+        ("width" 100)
+        ("height" 50)
+    ))
+)
+```
+
+Despite that original use case, Reduct can just as easily be utilized for scripting, configuration, or even as a general-purpose embedded language.
 
 ## Additional Concepts
 
@@ -606,7 +683,7 @@ Returns a threaded expression, where the result of each expression is passed as 
   
 Defines a variable with the given name and value within the current scope.
 
-Note that there is no `let` intrinsic in Reduct, this is becouse using `def` within a `do` block acomplishes the same result as a `let` expression in other Lisps, while also avoiding additional indentation and visual seperation which hurts readability.
+Note that there is no `let` intrinsic in Reduct, this is because using `def` within a `do` block accomplishes the same result as a `let` expression in other Lisps, while also avoiding additional indentation and visual separation which hurts readability.
 
 For example:
 
@@ -629,14 +706,6 @@ For example:
 **`(if <cond: item> <then: item> [else: item]) -> <item>`**
 
 Evaluates `<then>` if `<cond>` is truthy, otherwise evaluates `<else>` if provided, otherwise returns `nil`.
-
-**`(when <cond: item> {body: item}) -> <item>`**
-
-Evaluates each `<body>` expression in sequence if `<cond>` is truthy, returning the result of the last expression, or `nil` if the condition is falsy.
-
-**`(unless <cond: item> {body: item}) -> <item>`**
-
-Evaluates each `<body>` expression in sequence if `<cond>` is falsy, returning the result of the last expression, or `nil` if the condition is truthy.
 
 **`(cond ( <cond: item> <val: item> ) { ( <cond: item> <val: item> ) }) -> <item>`**
 

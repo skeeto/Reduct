@@ -458,62 +458,6 @@ void reduct_intrinsic_if(reduct_compiler_t* compiler, reduct_item_t* list, reduc
     *out = REDUCT_EXPR_REG(target);
 }
 
-static void reduct_intrinsic_when_unless(reduct_compiler_t* compiler, reduct_item_t* list, reduct_expr_t* out,
-    reduct_opcode_t jumpOp, reduct_expr_t defaultExpr)
-{
-    REDUCT_ASSERT(compiler != REDUCT_NULL);
-    REDUCT_ASSERT(list != REDUCT_NULL);
-    REDUCT_ASSERT(out != REDUCT_NULL);
-
-    if (list->length < 2)
-    {
-        *out = REDUCT_EXPR_NONE();
-        return;
-    }
-
-    reduct_expr_t condExpr = REDUCT_EXPR_NONE();
-    reduct_expr_build(compiler, reduct_list_nth_item(compiler->reduct, &list->list, 1), &condExpr);
-
-    reduct_bool_t isTruthy;
-    if (reduct_expr_is_known_truthy(compiler, &condExpr, &isTruthy))
-    {
-        reduct_expr_done(compiler, &condExpr);
-        reduct_bool_t shouldEval = (jumpOp == REDUCT_OPCODE_JMPF) ? isTruthy : !isTruthy;
-
-        if (shouldEval)
-        {
-            reduct_intrinsic_block_generic(compiler, list, 2, out);
-        }
-        else
-        {
-            *out = defaultExpr;
-        }
-        return;
-    }
-
-    reduct_reg_t target = reduct_expr_get_reg(compiler, out);
-    reduct_compile_move(compiler, target, &defaultExpr);
-
-    reduct_reg_t condReg = reduct_compile_move_or_alloc(compiler, &condExpr);
-    reduct_size_t jumpEnd = reduct_compile_jump(compiler, jumpOp, condReg);
-    reduct_expr_done(compiler, &condExpr);
-
-    *out = REDUCT_EXPR_TARGET(target);
-    reduct_intrinsic_block_generic(compiler, list, 2, out);
-
-    reduct_compile_jump_patch(compiler, jumpEnd);
-}
-
-void reduct_intrinsic_when(reduct_compiler_t* compiler, reduct_item_t* list, reduct_expr_t* out)
-{
-    reduct_intrinsic_when_unless(compiler, list, out, REDUCT_OPCODE_JMPF, REDUCT_EXPR_FALSE(compiler));
-}
-
-void reduct_intrinsic_unless(reduct_compiler_t* compiler, reduct_item_t* list, reduct_expr_t* out)
-{
-    reduct_intrinsic_when_unless(compiler, list, out, REDUCT_OPCODE_JMPT, REDUCT_EXPR_NIL(compiler));
-}
-
 void reduct_intrinsic_cond(reduct_compiler_t* compiler, reduct_item_t* list, reduct_expr_t* out)
 {
     REDUCT_ASSERT(compiler != REDUCT_NULL);
@@ -1270,8 +1214,6 @@ reduct_intrinsic_handler_t reductIntrinsicHandlers[REDUCT_INTRINSIC_MAX] = {
     [REDUCT_INTRINSIC_DEF] = reduct_intrinsic_def,
 
     [REDUCT_INTRINSIC_IF] = reduct_intrinsic_if,
-    [REDUCT_INTRINSIC_WHEN] = reduct_intrinsic_when,
-    [REDUCT_INTRINSIC_UNLESS] = reduct_intrinsic_unless,
     [REDUCT_INTRINSIC_COND] = reduct_intrinsic_cond,
     [REDUCT_INTRINSIC_MATCH] = reduct_intrinsic_match,
     [REDUCT_INTRINSIC_AND] = reduct_intrinsic_and,
@@ -1311,8 +1253,6 @@ const char* reductIntrinsics[REDUCT_INTRINSIC_MAX] = {
     [REDUCT_INTRINSIC_LAMBDA] = "lambda",
     [REDUCT_INTRINSIC_THREAD] = "->",
     [REDUCT_INTRINSIC_IF] = "if",
-    [REDUCT_INTRINSIC_WHEN] = "when",
-    [REDUCT_INTRINSIC_UNLESS] = "unless",
     [REDUCT_INTRINSIC_COND] = "cond",
     [REDUCT_INTRINSIC_MATCH] = "match",
     [REDUCT_INTRINSIC_AND] = "and",

@@ -5,6 +5,7 @@
 #include "compile.h"
 #include "core.h"
 #include "gc.h"
+#include "intrinsic.h"
 #include "item.h"
 #include "item_impl.h"
 #include "list.h"
@@ -18,42 +19,17 @@ REDUCT_API reduct_function_t* reduct_compile(reduct_t* reduct, reduct_handle_t* 
     reduct_item_t* funcItem = REDUCT_CONTAINER_OF(func, reduct_item_t, function);
     REDUCT_GC_RETAIN_ITEM(reduct, funcItem);
     reduct_compiler_t compiler;
-
     reduct_compiler_init(&compiler, reduct, func, REDUCT_NULL);
-    compiler.lastItem = REDUCT_HANDLE_TO_ITEM(ast);
 
     reduct_item_t* astItem = REDUCT_HANDLE_TO_ITEM(ast);
+    compiler.lastItem = astItem;
     funcItem->input = astItem->input;
-    if (astItem->length == 0)
-    {
-        REDUCT_ERROR_COMPILE(&compiler, astItem, "empty function");
-    }
 
     reduct_expr_t lastExpr = REDUCT_EXPR_NONE();
-
-    if (astItem->length > 1)
-    {
-        reduct_reg_t target = reduct_reg_alloc(&compiler);
-        reduct_compile_list(&compiler, target);
-
-        reduct_handle_t h;
-        REDUCT_LIST_FOR_EACH(&h, &astItem->list)
-        {
-            reduct_item_t* item = REDUCT_HANDLE_TO_ITEM(&h);
-            reduct_expr_t argExpr = REDUCT_EXPR_NONE();
-            reduct_expr_build(&compiler, item, &argExpr);
-            reduct_compile_append(&compiler, target, &argExpr);
-            reduct_expr_done(&compiler, &argExpr);
-        }
-
-        lastExpr = REDUCT_EXPR_REG(target);
-    }
-    else
-    {
-        reduct_expr_build(&compiler, reduct_list_nth_item(reduct, &astItem->list, 0), &lastExpr);
-    }
+    reduct_intrinsic_block_generic(&compiler, astItem, 0, &lastExpr);
 
     reduct_compile_return(&compiler, &lastExpr);
+    reduct_expr_done(&compiler, &lastExpr);
 
     reduct_compiler_deinit(&compiler);
 

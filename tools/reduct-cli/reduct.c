@@ -115,8 +115,8 @@ int main(int argc, char **argv)
     }
 
     reduct_stringify(reduct, &eval, buffer, sizeof(buffer));
-    printf("%s\n", buffer);
-    
+    printf("%s%c", buffer, REDUCT_HANDLE_IS_ATOM(&eval) ? '\0' : '\n');
+
 cleanup:
     reduct_free(reduct);
 

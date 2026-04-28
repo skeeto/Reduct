@@ -556,7 +556,7 @@ Outputs an 80 by 40 visualization of the Mandelbrot set with 10000 iterations.
 
 ## Testing
 
-Testing is done via the `tests/run_tests.sh" script.
+Testing is done via the `tests/run_tests.sh" script, which is ran via [github actions](https://github.com/KaiNorberg/Reduct/blob/main/.github/workflows/test.yml) on Ubuntu, Windows and macOS.
 
 The script will compile the CLI tool with clang `-fsanitize=address,undefined`, run a set of test scripts found in `tests/` and then use libfuzzer to fuzz the parser, compiler and evaluator.
 

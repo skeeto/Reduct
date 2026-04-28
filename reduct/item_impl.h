@@ -22,7 +22,6 @@ static inline reduct_item_t* reduct_item_pop_free_list(reduct_t* reduct)
 
     reduct_item_t* item = reduct->freeList;
     reduct->freeList = item->free;
-    reduct_item_init(item);
     return item;
 }
 
@@ -56,18 +55,22 @@ REDUCT_API reduct_item_t* reduct_item_new(reduct_t* reduct)
     }
     reduct->blocksAllocated++;
 
+    for (reduct_size_t i = 0; i < REDUCT_ITEM_BLOCK_MAX; i++)
+    {
+        reduct_item_init(&block->items[i]);
+    }
+
     for (reduct_size_t i = 1; i < REDUCT_ITEM_BLOCK_MAX - 1; i++)
     {
         block->items[i].free = &block->items[i + 1];
     }
-
     block->items[REDUCT_ITEM_BLOCK_MAX - 1].free = REDUCT_NULL;
+
     reduct->freeList = &block->items[1];
     block->next = reduct->block;
     reduct->block = block;
 
     item = &block->items[0];
-    reduct_item_init(item);
     return item;
 }
 

@@ -34,7 +34,7 @@ target_include_directories(reduct PRIVATE
 
 option(REDUCT_USE_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
 if(REDUCT_USE_SANITIZERS)
-    if(NOT MSVC)
+    if(NOT WIN32)
         target_compile_options(reduct PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
         target_link_options(reduct PRIVATE -fsanitize=address,undefined)
     endif()
@@ -61,8 +61,11 @@ if(REDUCT_USE_FUZZER)
     )
     target_link_options(fuzz PRIVATE
         -fsanitize=fuzzer,address,undefined
+        -fuse-ld=lld
     )
-    target_link_libraries(fuzz m)
+    if(NOT WIN32)
+        target_link_libraries(fuzz m)
+    endif()
 endif()
 
 if(NOT MSVC)
@@ -71,4 +74,6 @@ endif()
 
 install(TARGETS reduct RUNTIME DESTINATION bin)
 
-target_link_libraries(reduct m)
+if(NOT WIN32)
+    target_link_libraries(reduct m)
+endif()

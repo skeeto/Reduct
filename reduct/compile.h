@@ -453,7 +453,7 @@ static inline void reduct_compile_move(reduct_compiler_t* compiler, reduct_reg_t
     REDUCT_ASSERT(expr->mode != REDUCT_MODE_REG || expr->reg < REDUCT_REGISTER_MAX);
 
     reduct_compile_inst(compiler,
-        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_MOV | expr->mode), target, 0, expr->value));
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_MOV | (reduct_opcode_t)expr->mode), target, 0, expr->value));
 }
 
 /**
@@ -610,7 +610,7 @@ static inline void reduct_compile_return(reduct_compiler_t* compiler, reduct_exp
 
     REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
     reduct_compile_inst(compiler,
-        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_RET | expr->mode), 0, 0, expr->value));
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_RET | (reduct_opcode_t)expr->mode), 0, 0, expr->value));
 }
 
 /**
@@ -626,7 +626,7 @@ static inline void reduct_compile_append(reduct_compiler_t* compiler, reduct_reg
     REDUCT_ASSERT(expr != REDUCT_NULL);
     REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
     reduct_compile_inst(compiler,
-        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_APPEND | expr->mode), target, 0, expr->value));
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_APPEND | (reduct_opcode_t)expr->mode), target, 0, expr->value));
 }
 
 /**
@@ -676,7 +676,7 @@ static inline void reduct_compile_capture(reduct_compiler_t* compiler, reduct_re
     REDUCT_ASSERT(expr != REDUCT_NULL);
     REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
     reduct_compile_inst(compiler,
-        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_CAPTURE | expr->mode), closureReg, slot, expr->value));
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_CAPTURE | (reduct_opcode_t)expr->mode), closureReg, slot, expr->value));
 }
 
 #endif

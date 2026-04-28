@@ -18,7 +18,7 @@
 </div>
 <br>
 
-Reduct is a functional, immutable, S-expression based configuration and scripting language. It aims to combine the flexibility of a Lisp, the simplicity of a language like Lua, and the performance of a register-based VM. All within a C99 header-only library.
+Reduct is a functional, immutable, S-expression based configuration and scripting language. It aims to combine the flexibility of a Lisp with the easy-of-use and performance of a language like Lua. All within a C99 header-only library.
 
 ## Tools
 

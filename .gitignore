@@ -59,3 +59,4 @@ tests/fuzz*
 build
 temp*
 .cache
+meta/docs

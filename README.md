@@ -5,11 +5,11 @@
     <a href="https://github.com/KaiNorberg/Reduct/issues">
       <img src="https://img.shields.io/github/issues/KaiNorberg/Reduct">
     </a>
-    <a href="https://github.com/KaiNorberg/Reduct/network">
-      <img src="https://img.shields.io/github/forks/KaiNorberg/Reduct">
-    </a>
     <a href="https://github.com/KaiNorberg/Reduct/stargazers">
       <img src="https://img.shields.io/github/stars/KaiNorberg/Reduct">
+    </a>
+    <a href="https://kainorberg.github.io/Reduct/html/index.html">
+      <img src="https://img.shields.io/badge/docs-Doxygen-blue">
     </a>
     <a href="https://github.com/KaiNorberg/Reduct/blob/main/license">
       <img src="https://img.shields.io/github/license/KaiNorberg/Reduct">

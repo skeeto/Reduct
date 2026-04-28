@@ -18,7 +18,7 @@ jobs:
           - os: ubuntu-latest
           - os: macos-latest
           - os: windows-latest
-            cmake_extra: -DCMAKE_C_COMPILER=clang
+            cmake_extra: -G Ninja -DCMAKE_C_COMPILER=clang
 
     steps:
       - name: Checkout

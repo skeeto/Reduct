@@ -147,11 +147,11 @@ For more examples, see the `bench/` and `tests/` directories.
 
 ## Motivation
 
-Reduct aim to provide a series of potential advantages that over existing languages.
+Reduct aims to provide a series of potential advantages that over existing languages.
 
 ### Performance
 
-Reduct is designed to be fast and efficient, utilizing a register-based VM and many other techniques to improve performance, allowing it to outperform even Lua (though no the JIT version obviously, maybe one day...), in some benchmarks.
+Reduct is designed to be fast and efficient, utilizing a register-based VM and many other techniques to improve performance, allowing it to outperform even Lua (though not the JIT version obviously, maybe one day...), in some benchmarks.
 
 See [Benchmarks](#benchmarks) for more information.
 

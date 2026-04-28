@@ -455,6 +455,10 @@ reduct_native_register(reduct, natives, sizeof(natives) / sizeof(reduct_native_t
 
 All Reduct standard library functions are available in C, for example, `reduct_is_atom()`, `reduct_assoc()`, etc.
 
+### Documentation
+
+For more information, either consult the doxygen documentation within the headers or the generated documentation found [here](https://kainorberg.github.io/Reduct//html/index.html).
+
 ## Implementation
 
 Reduct is implemented as a register-based bytecode language, where the Reduct source is first parsed into an Abstract Syntax Tree (AST) and then compiled into a custom bytecode format before being executed by the virtual machine/evaluator.

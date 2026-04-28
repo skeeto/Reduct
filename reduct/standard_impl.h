@@ -124,27 +124,27 @@ REDUCT_API reduct_handle_t reduct_reduce(reduct_t* reduct, reduct_handle_t* list
     reduct_item_t* listItem = REDUCT_HANDLE_TO_ITEM(list);
     reduct_handle_t accumulator = (initial != REDUCT_NULL) ? *initial : REDUCT_HANDLE_NONE;
 
-    reduct_list_iter_t iter = REDUCT_LIST_ITER(&listItem->list);
     reduct_handle_t entry;
-
-    if (accumulator == REDUCT_HANDLE_NONE)
+    REDUCT_LIST_FOR_EACH(&entry, &listItem->list)
     {
-        if (!reduct_list_iter_next(&iter, &accumulator))
+        if (accumulator == REDUCT_HANDLE_NONE)
         {
-            return reduct_handle_nil(reduct);
+            accumulator = entry;
+            REDUCT_GC_RETAIN(reduct, accumulator);
+            continue;
         }
-    }
 
-    REDUCT_GC_RETAIN(reduct, accumulator);
-
-    while (reduct_list_iter_next(&iter, &entry))
-    {
         reduct_handle_t args[2] = {accumulator, entry};
         reduct_handle_t result = reduct_eval_call(reduct, *callable, 2, args);
         REDUCT_GC_RETAIN(reduct, result);
 
         REDUCT_GC_RELEASE(reduct, accumulator);
         accumulator = result;
+    }
+
+    if (accumulator == REDUCT_HANDLE_NONE)
+    {
+        return reduct_handle_nil(reduct);
     }
 
     REDUCT_GC_RELEASE(reduct, accumulator);
@@ -173,11 +173,10 @@ REDUCT_API reduct_handle_t reduct_apply(reduct_t* reduct, reduct_handle_t* list,
         REDUCT_ERROR_INTERNAL(reduct, "out of memory");
     }
 
-    reduct_size_t i = 0;
     reduct_handle_t entry;
     REDUCT_LIST_FOR_EACH(&entry, &listItem->list)
     {
-        argv[i++] = entry;
+        argv[_iter.index - 1] = entry;
     }
 
     reduct_handle_t result = reduct_eval_call(reduct, *callable, len, argv);
@@ -309,11 +308,10 @@ REDUCT_API reduct_handle_t reduct_sort(reduct_t* reduct, reduct_handle_t* listHa
         REDUCT_ERROR_INTERNAL(reduct, "out of memory");
     }
 
-    reduct_size_t idx = 0;
     reduct_handle_t entry;
     REDUCT_LIST_FOR_EACH(&entry, &list->list)
     {
-        a[idx++] = entry;
+        a[_iter.index - 1] = entry;
     }
 
     reduct_handle_t* src = a;
@@ -794,14 +792,12 @@ REDUCT_API reduct_handle_t reduct_index_of(reduct_t* reduct, reduct_handle_t* ha
     case REDUCT_ITEM_TYPE_LIST:
     {
         reduct_handle_t current;
-        reduct_size_t i = 0;
         REDUCT_LIST_FOR_EACH(&current, &item->list)
         {
             if (reduct_handle_compare(reduct, &current, target) == 0)
             {
-                return REDUCT_HANDLE_FROM_INT(i);
+                return REDUCT_HANDLE_FROM_INT(_iter.index - 1);
             }
-            i++;
         }
     }
     break;
@@ -1402,15 +1398,6 @@ REDUCT_API reduct_handle_t reduct_explode(reduct_t* reduct, reduct_size_t argc, 
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(argv != REDUCT_NULL || argc == 0);
 
-    reduct_size_t totalLen = 0;
-    for (reduct_size_t i = 0; i < argc; i++)
-    {
-        char* str;
-        reduct_size_t len;
-        reduct_handle_get_string_params(reduct, &argv[i], &str, &len);
-        totalLen += len;
-    }
-
     reduct_list_t* list = reduct_list_new(reduct);
     reduct_handle_t listHandle = REDUCT_HANDLE_FROM_LIST(list);
     REDUCT_GC_RETAIN(reduct, listHandle);
@@ -1480,40 +1467,17 @@ REDUCT_API reduct_handle_t reduct_repeat(reduct_t* reduct, reduct_handle_t* hand
         REDUCT_ERROR_RUNTIME(reduct, "repeat count cannot be negative, got %lld", n);
     }
 
-    reduct_size_t repeatCount = (reduct_size_t)n;
+    reduct_list_t* newList = reduct_list_new(reduct);
+    reduct_handle_t newHandle = REDUCT_HANDLE_FROM_LIST(newList);
+    REDUCT_GC_RETAIN(reduct, newHandle);
 
-    if (REDUCT_HANDLE_IS_LIST(handle))
+    for (reduct_size_t i = 0; i < (reduct_size_t)n; i++)
     {
-        reduct_item_t* item = REDUCT_HANDLE_TO_ITEM(handle);
-
-        reduct_list_t* newList = reduct_list_new(reduct);
-        reduct_handle_t newHandle = REDUCT_HANDLE_FROM_LIST(newList);
-        REDUCT_GC_RETAIN(reduct, newHandle);
-
-        for (reduct_size_t i = 0; i < repeatCount; i++)
-        {
-            reduct_list_append_list(reduct, newList, &item->list);
-        }
-
-        REDUCT_GC_RELEASE(reduct, newHandle);
-        return newHandle;
+        reduct_list_append(reduct, newList, *handle);
     }
 
-    char* str;
-    reduct_size_t len;
-    reduct_handle_get_string_params(reduct, handle, &str, &len);
-
-    reduct_size_t totalLen = len * repeatCount;
-    REDUCT_SCRATCH_BUFFER(buffer, totalLen);
-
-    for (reduct_size_t i = 0; i < repeatCount; i++)
-    {
-        REDUCT_MEMCPY(buffer + (i * len), str, len);
-    }
-
-    reduct_handle_t result = REDUCT_HANDLE_FROM_ATOM(reduct_atom_lookup(reduct, buffer, totalLen, REDUCT_ATOM_LOOKUP_NONE));
-    REDUCT_SCRATCH_BUFFER_FREE(buffer);
-    return result;
+    REDUCT_GC_RELEASE(reduct, newHandle);
+    return newHandle;
 }
 
 static inline reduct_handle_t reduct_sequence_check_edge(reduct_t* reduct, reduct_handle_t* handle, reduct_handle_t* target,
@@ -1595,7 +1559,6 @@ REDUCT_API reduct_handle_t reduct_join(reduct_t* reduct, reduct_handle_t* listHa
     REDUCT_SCRATCH_BUFFER(buffer, totalLen);
 
     reduct_size_t currentPos = 0;
-    reduct_size_t i = 0;
     REDUCT_LIST_FOR_EACH(&entry, &list->list)
     {
         char* str;
@@ -1604,12 +1567,11 @@ REDUCT_API reduct_handle_t reduct_join(reduct_t* reduct, reduct_handle_t* listHa
         REDUCT_MEMCPY(buffer + currentPos, str, len);
         currentPos += len;
 
-        if (i < list->length - 1)
+        if (_iter.index < list->length)
         {
             REDUCT_MEMCPY(buffer + currentPos, sepStr, sepLen);
             currentPos += sepLen;
         }
-        i++;
     }
 
     reduct_handle_t result = REDUCT_HANDLE_FROM_ATOM(reduct_atom_lookup(reduct, buffer, totalLen, REDUCT_ATOM_LOOKUP_NONE));
@@ -1753,13 +1715,13 @@ REDUCT_API reduct_handle_t reduct_trim(reduct_t* reduct, reduct_handle_t* srcHan
 REDUCT_INTROSPECTION_IMPL(reduct_is_atom, REDUCT_HANDLE_IS_ATOM)
 REDUCT_INTROSPECTION_IMPL(reduct_is_int, REDUCT_HANDLE_IS_INT_SHAPED)
 REDUCT_INTROSPECTION_IMPL(reduct_is_float, REDUCT_HANDLE_IS_FLOAT_SHAPED)
-REDUCT_INTROSPECTION_IMPL(reduct_is_number, REDUCT_HANDLE_IS_NUMBER)
+REDUCT_INTROSPECTION_IMPL(reduct_is_number, REDUCT_HANDLE_IS_NUMBER_SHAPED)
 REDUCT_INTROSPECTION_IMPL(reduct_is_lambda, REDUCT_HANDLE_IS_LAMBDA)
 REDUCT_INTROSPECTION_IMPL(reduct_is_native, REDUCT_HANDLE_IS_NATIVE)
 REDUCT_INTROSPECTION_IMPL(reduct_is_callable, REDUCT_HANDLE_IS_CALLABLE)
 REDUCT_INTROSPECTION_IMPL(reduct_is_list, REDUCT_HANDLE_IS_LIST)
 
-#define REDUCT_PREDICATE_IS_STRING(_h) (REDUCT_HANDLE_IS_ATOM(_h) && !REDUCT_HANDLE_IS_NUMBER(_h))
+#define REDUCT_PREDICATE_IS_STRING(_h) (REDUCT_HANDLE_IS_ATOM(_h) && !REDUCT_HANDLE_IS_NUMBER_SHAPED(_h))
 REDUCT_INTROSPECTION_IMPL(reduct_is_string, REDUCT_PREDICATE_IS_STRING)
 
 #define REDUCT_PREDICATE_IS_EMPTY(_h) (reduct_handle_item(reduct, _h)->length == 0)
@@ -1767,29 +1729,6 @@ REDUCT_INTROSPECTION_IMPL(reduct_is_empty, REDUCT_PREDICATE_IS_EMPTY)
 
 #define REDUCT_PREDICATE_IS_NIL(_h) (*(_h) == reduct_handle_nil(reduct))
 REDUCT_INTROSPECTION_IMPL(reduct_is_nil, REDUCT_PREDICATE_IS_NIL)
-
-static inline reduct_item_t* reduct_get_numeric_item(reduct_t* reduct, reduct_handle_t* handle)
-{
-    reduct_item_t* item = reduct_handle_item(reduct, handle);
-    if (item->flags & (REDUCT_ITEM_FLAG_INT_SHAPED | REDUCT_ITEM_FLAG_FLOAT_SHAPED))
-    {
-        return item;
-    }
-
-    if (item->flags & REDUCT_ITEM_FLAG_QUOTED)
-    {
-        reduct_atom_t* atom = reduct_atom_lookup(reduct, item->atom.string, item->length, REDUCT_ATOM_LOOKUP_NONE);
-        if (atom != REDUCT_NULL)
-        {
-            reduct_item_t* inner = REDUCT_CONTAINER_OF(atom, reduct_item_t, atom);
-            if (inner->flags & (REDUCT_ITEM_FLAG_INT_SHAPED | REDUCT_ITEM_FLAG_FLOAT_SHAPED))
-            {
-                return inner;
-            }
-        }
-    }
-    return item;
-}
 
 #define REDUCT_GET_NUMERIC_IMPL(_name, _res, _type, _other, _targetUnion, _otherUnion) \
 REDUCT_API reduct_handle_t reduct_get_##_name(reduct_t* reduct, reduct_handle_t* handle) \
@@ -1803,7 +1742,7 @@ REDUCT_API reduct_handle_t reduct_get_##_name(reduct_t* reduct, reduct_handle_t*
     { \
         return REDUCT_HANDLE_FROM_##_res((reduct_##_name##_t)REDUCT_HANDLE_TO_##_other(handle)); \
     } \
-    reduct_item_t* item = reduct_get_numeric_item(reduct, handle); \
+    reduct_item_t* item = reduct_handle_item(reduct, handle); \
     if (item->flags & REDUCT_ITEM_FLAG_##_type##_SHAPED) \
     { \
         return REDUCT_HANDLE_FROM_##_res(item->atom._targetUnion); \
@@ -1914,6 +1853,19 @@ static void reduct_resolve_path(reduct_t* reduct, const char* path, reduct_size_
     REDUCT_MEMCPY(outPath, input->path, dirLen);
     REDUCT_MEMCPY(outPath + dirLen, path, pathLen);
     outPath[dirLen + pathLen] = '\0';
+}
+
+REDUCT_API reduct_handle_t reduct_run(struct reduct* reduct, reduct_handle_t* handle)
+{
+    REDUCT_ASSERT(reduct != REDUCT_NULL);
+
+    char* str;
+    reduct_size_t len;
+    reduct_handle_get_string_params(reduct, handle, &str, &len);
+
+    reduct_handle_t ast = reduct_parse(reduct, str, len, "<run>");
+    reduct_function_t* function = reduct_compile(reduct, &ast);
+    return reduct_eval(reduct, function);
 }
 
 static void reduct_get_resolved_path(reduct_t* reduct, reduct_handle_t* pathHandle, char* outBuf)
@@ -2303,7 +2255,7 @@ REDUCT_API reduct_handle_t reduct_args(struct reduct* reduct)
     }
 
     reduct_list_t* list = reduct_list_new(reduct);
-    for (reduct_size_t i = 0; i < reduct->argc; i++)
+    for (int i = 0; i < reduct->argc; i++)
     {
         reduct_list_append(reduct, list,
             REDUCT_HANDLE_FROM_ATOM(
@@ -2686,6 +2638,7 @@ static reduct_handle_t reduct_stdlib_parse_impl(reduct_t* reduct, reduct_handle_
 }
 REDUCT_STDLIB_WRAPPER_1(parse, reduct_stdlib_parse_impl)
 
+REDUCT_STDLIB_WRAPPER_1(run, reduct_run)
 REDUCT_STDLIB_WRAPPER_1(load, reduct_load)
 REDUCT_STDLIB_WRAPPER_1(read_file, reduct_read_file)
 REDUCT_STDLIB_WRAPPER_2(write_file, reduct_write_file)
@@ -2850,6 +2803,7 @@ REDUCT_API void reduct_stdlib_register(reduct_t* reduct, reduct_stdlib_sets_t se
         reduct_native_t natives[] = {
             {"eval", reduct_stdlib_eval},
             {"parse", reduct_stdlib_parse},
+            {"run", reduct_stdlib_run},
             {"load!", reduct_stdlib_load},
             {"read-file!", reduct_stdlib_read_file},
             {"write-file!", reduct_stdlib_write_file},

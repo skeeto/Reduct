@@ -2,14 +2,18 @@
     (def a 10)
     (assert! (== a 10) "def should bind 'a' to 10")
 
-    (let ((a 30) (b 40))
-        (assert! (== a 30) "let should shadow the outer variable 'a'")
-        (assert! (== b 40) "let should bind local variable 'b'")
+    (do
+        (def a 30)
+        (def b 40)
+        (assert! (== a 30) "def in nested do should shadow the outer variable 'a'")
+        (assert! (== b 40) "def in nested do should bind local variable 'b'")
     )
 
-    (assert! (== a 10) "outer 'a' should remain unchanged after let block exits")
+    (assert! (== a 10) "outer 'a' should remain unchanged after nested do block exits")
 
-    (let ((x 5) (y x))
-        (assert! (== y 5) "'y' should be able to reference 'x' in sequential let bindings")
+    (do
+        (def x 5)
+        (def y x)
+        (assert! (== y 5) "'y' should be able to reference 'x' in sequential def bindings")
     )
 )

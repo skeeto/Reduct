@@ -1,5 +1,5 @@
-#ifndef REDUCT_STDLIB_H
-#define REDUCT_STDLIB_H 1
+#ifndef REDUCT_STANDARD_H
+#define REDUCT_STANDARD_H 1
 
 #include "defs.h"
 #include "item.h"
@@ -108,6 +108,7 @@ REDUCT_API reduct_handle_t reduct_get_int(struct reduct* reduct, reduct_handle_t
 REDUCT_API reduct_handle_t reduct_get_float(struct reduct* reduct, reduct_handle_t* handle);
 REDUCT_API reduct_handle_t reduct_get_string(struct reduct* reduct, reduct_handle_t* handle);
 
+REDUCT_API reduct_handle_t reduct_run(struct reduct* reduct, reduct_handle_t* handle);
 REDUCT_API reduct_handle_t reduct_load(struct reduct* reduct, reduct_handle_t* path);
 REDUCT_API reduct_handle_t reduct_read_file(struct reduct* reduct, reduct_handle_t* path);
 REDUCT_API reduct_handle_t reduct_write_file(struct reduct* reduct, reduct_handle_t* path, reduct_handle_t* content);

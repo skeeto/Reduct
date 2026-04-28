@@ -1,3 +1,4 @@
+#include "defs.h"
 #ifndef REDUCT_COMPILE_H
 #define REDUCT_COMPILE_H 1
 
@@ -263,7 +264,7 @@ REDUCT_API void reduct_reg_free_range(reduct_compiler_t* compiler, reduct_reg_t 
  * @brief Get the target register index from an expression, or -1 if no target is specified.
  * @param _expr The expression to check.
  */
-#define REDUCT_EXPR_GET_TARGET(_expr) (((_expr)->mode == REDUCT_MODE_TARGET) ? (_expr)->reg : (reduct_reg_t)-1)
+#define REDUCT_EXPR_GET_TARGET(_expr) (((_expr)->mode == REDUCT_MODE_TARGET) ? (_expr)->reg : REDUCT_REG_INVALID)
 
 /**
  * @brief Create a `REDUCT_MODE_CONST` mode expression for a float.
@@ -372,6 +373,15 @@ REDUCT_API void reduct_local_def_done(reduct_compiler_t* compiler, reduct_local_
 REDUCT_API reduct_local_t* reduct_local_add_arg(reduct_compiler_t* compiler, reduct_atom_t* name);
 
 /**
+ * @brief Pop local variables from the stack, releasing their registers if they are no longer used.
+ *
+ * @param compiler The compiler context.
+ * @param toCount The local count to restore to.
+ * @param result The result expression of the block, whose register should not be freed.
+ */
+REDUCT_API void reduct_local_pop(reduct_compiler_t* compiler, reduct_uint16_t toCount, reduct_expr_t* result);
+
+/**
  * @brief Look up a local by name and return its expression.
  *
  * @param compiler The compiler context.
@@ -435,6 +445,9 @@ static inline void reduct_compile_move(reduct_compiler_t* compiler, reduct_reg_t
     REDUCT_ASSERT(compiler != REDUCT_NULL);
     REDUCT_ASSERT(expr != REDUCT_NULL);
     REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
+    REDUCT_ASSERT(target < REDUCT_REGISTER_MAX);
+    REDUCT_ASSERT(expr->mode != REDUCT_MODE_REG || expr->reg < REDUCT_REGISTER_MAX);
+
     reduct_compile_inst(compiler,
         REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_MOV | expr->mode), target, 0, expr->value));
 }
@@ -464,7 +477,7 @@ static inline reduct_size_t reduct_compile_jump(reduct_compiler_t* compiler, red
 static inline void reduct_compile_jump_patch(reduct_compiler_t* compiler, reduct_size_t pos)
 {
     REDUCT_ASSERT(compiler != REDUCT_NULL);
-    reduct_int32_t offset = (reduct_int32_t)(compiler->function->instCount - pos - 1);
+    reduct_int64_t offset = (reduct_int64_t)(compiler->function->instCount - pos - 1);
     compiler->function->insts[pos] = REDUCT_INST_SET_SBX(compiler->function->insts[pos], offset);
 }
 

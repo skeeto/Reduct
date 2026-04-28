@@ -43,6 +43,8 @@ typedef reduct_uint8_t reduct_item_flags_t;
 #define REDUCT_ITEM_FLAG_QUOTED (1 << 5)       ///< Item is a quoted atom.
 #define REDUCT_ITEM_FLAG_GC_MARK (1 << 6)      ///< Item is marked by GC.
 
+#define REDUCT_ITEM_PAYLOAD_MAX 48 ///< The maximum size of the item payload.
+
 /**
  * @brief Reduct item structure.
  * @struct reduct_item_t
@@ -66,6 +68,7 @@ typedef struct reduct_item
         reduct_function_t function; ///< A function.
         reduct_closure_t closure;   ///< A closure.
         struct reduct_item* free;   ///< The next free item in the free list.
+        uint8_t _raw[REDUCT_ITEM_PAYLOAD_MAX];
     };
 } reduct_item_t;
 

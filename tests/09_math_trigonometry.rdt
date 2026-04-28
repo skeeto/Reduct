@@ -1,6 +1,7 @@
 (do
     (assert! (== (min 5 3 9) 3) "min should return the smallest argument")
     (assert! (== (max 5 3 9) 9) "max should return the largest argument")
+    (assert! (== (min 5 3.0 9) 3.0) "min should support mixed types with promotion")
     
     (assert! (== (clamp 10 1 5) 5) "clamp should restrict value to maximum")
     (assert! (== (clamp 0 1 5) 1) "clamp should restrict value to minimum")
@@ -15,12 +16,21 @@
 
     (assert! (== (pow 2 3) 8) "pow should return base raised to exponent")
     (assert! (== (sqrt 16) 4) "sqrt should return the square root")
+    (assert! (number? (exp 1)) "exp should return the exponential of the argument")
+    (assert! (== (log 100 10) 2) "log with base should work")
+    (assert! (number? (log 2.71828)) "log with one arg should use natural log base")
 
     (assert! (number? (sin 0)) "sin should return a number")
     (assert! (number? (cos 0)) "cos should return a number")
     (assert! (number? (tan 0)) "tan should return a number")
     (assert! (number? (asin 0)) "asin should return a number")
+    (assert! (number? (acos 1)) "acos should return a number")
+    (assert! (number? (atan 0)) "atan should return a number")
     (assert! (number? (atan2 0 1)) "atan2 should return a number")
+    
+    (assert! (number? (sinh 0)) "sinh should return a number")
+    (assert! (number? (cosh 0)) "cosh should return a number")
+    (assert! (number? (asinh 0)) "asinh should return a number")
 
     (assert! (number? (rand 1 10)) "rand should return a number")
     

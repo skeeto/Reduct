@@ -52,8 +52,10 @@ Mkfile.old
 dkms.conf
 
 # Other
-tools/reduct-cli/build
-tests/build
+tools/reduct-cli/build*
+tools/reduct-cli/reduct_version.h
+tests/build*
+tests/fuzz*
 build
 temp*
 .cache

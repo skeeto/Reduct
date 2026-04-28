@@ -31,8 +31,7 @@ int main(int argc, char **argv)
             else
             {
                 fprintf(stderr, "error: -e requires an expression argument\n");
-                result = 1;
-                goto cleanup;
+                return 1;
             }
         }
         else if (strcmp(argv[i], "-d") == 0)
@@ -41,14 +40,13 @@ int main(int argc, char **argv)
         }
         else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
         {
-            printf("Reduct %s (%s)\n", REDUCT_VERSION_STRING, REDUCT_GIT_HASH);
+            printf("Reduct %s\n", REDUCT_FULL_VERSION_STRING);
             return 0;
         }
         else if (argv[i][0] == '-')
         {
             fprintf(stderr, "error: unknown option '%s'\n", argv[i]);
-            result = 1;
-            goto cleanup;
+            return 1;
         }
         else
         {
@@ -58,6 +56,7 @@ int main(int argc, char **argv)
 
     if (filename == NULL && evalExpr == NULL)
     {
+        fprintf(stderr, "Reduct %s\n", REDUCT_FULL_VERSION_STRING);
         fprintf(stderr, "Usage: %s [options] <filename>\n", argv[0]);
         fprintf(stderr, "Options:\n");
         fprintf(stderr, "  -e <expr>      Evaluate the given expression\n");

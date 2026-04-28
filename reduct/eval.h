@@ -64,6 +64,25 @@ REDUCT_API void reduct_eval_state_deinit(reduct_eval_state_t* state);
 REDUCT_API reduct_handle_t reduct_eval(reduct_t* reduct, reduct_function_t* function);
 
 /**
+ * @brief Parses, compiles and evaluates a file.
+ *
+ * @param reduct The Reduct instance.
+ * @param path The path to the file.
+ * @return The result of the evaluation.
+ */
+REDUCT_API reduct_handle_t reduct_eval_file(reduct_t* reduct, const char* path);
+
+/**
+ * @brief Parses, compiles and evaluates a string.
+ *
+ * @param reduct The Reduct instance.
+ * @param str The string to evaluate.
+ * @param len The length of the string.
+ * @return The result of the evaluation.
+ */
+REDUCT_API reduct_handle_t reduct_eval_string(reduct_t* reduct, const char* str, reduct_size_t len);
+
+/**
  * @brief Calls a Reduct callable (closure or native) with arguments.
  *
  * @param reduct The Reduct instance.

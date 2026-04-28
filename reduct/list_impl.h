@@ -10,6 +10,11 @@ static inline reduct_list_node_t* reduct_list_node_new(struct reduct* reduct)
 {
     reduct_item_t* item = reduct_item_new(reduct);
     item->type = REDUCT_ITEM_TYPE_LIST_NODE;
+    reduct_list_node_t* node = &item->node;
+    for (reduct_uint32_t i = 0; i < REDUCT_LIST_WIDTH; i++)
+    {
+        node->children[i] = REDUCT_NULL;
+    }
     return &item->node;
 }
 
@@ -110,17 +115,13 @@ REDUCT_API reduct_list_t* reduct_list_dissoc(struct reduct* reduct, reduct_list_
     /// @todo There is definetly a better way to do this
 
     reduct_list_t* newList = reduct_list_new(reduct);
-    reduct_list_iter_t iter = REDUCT_LIST_ITER_AT(list, 0);
-
     reduct_handle_t val;
-    reduct_size_t i = 0;
-    while (reduct_list_iter_next(&iter, &val))
+    REDUCT_LIST_FOR_EACH(&val, list)
     {
-        if (i != index)
+        if (_iter.index - 1 != index)
         {
             reduct_list_append(reduct, newList, val);
         }
-        i++;
     }
 
     return newList;
@@ -137,16 +138,10 @@ REDUCT_API reduct_list_t* reduct_list_slice(struct reduct* reduct, reduct_list_t
     }
 
     reduct_list_t* newList = reduct_list_new(reduct);
-    reduct_size_t count = end - start;
-    if (count == 0)
-    {
-        return newList;
-    }
-
     reduct_list_iter_t iter = REDUCT_LIST_ITER_AT(list, start);
 
     reduct_handle_t val;
-    for (reduct_size_t i = 0; i < count; i++)
+    while (iter.index < end)
     {
         if (REDUCT_LIKELY(reduct_list_iter_next(&iter, &val)))
         {
@@ -182,12 +177,15 @@ REDUCT_API struct reduct_item* reduct_list_nth_item(struct reduct* reduct, reduc
 static reduct_list_node_t* reduct_push_tail(reduct_t* reduct, reduct_uint32_t shift, reduct_size_t index, reduct_list_node_t* parent,
     reduct_list_node_t* tailNode)
 {
+    REDUCT_ASSERT(reduct != REDUCT_NULL);
+    REDUCT_ASSERT(tailNode != REDUCT_NULL);
+
     if (shift == 0)
     {
         return tailNode;
     }
 
-    reduct_list_node_t* newNode = parent ? reduct_list_node_copy(reduct, parent) : reduct_list_node_new(reduct);
+    reduct_list_node_t* newNode = parent != REDUCT_NULL ? reduct_list_node_copy(reduct, parent) : reduct_list_node_new(reduct);
     reduct_uint32_t subIdx = (index >> shift) & REDUCT_LIST_MASK;
     newNode->children[subIdx] =
         reduct_push_tail(reduct, shift - REDUCT_LIST_BITS, index, newNode->children[subIdx], tailNode);
@@ -244,9 +242,8 @@ REDUCT_API void reduct_list_append_list(reduct_t* reduct, reduct_list_t* list, r
     REDUCT_ASSERT(list != REDUCT_NULL);
     REDUCT_ASSERT(other != REDUCT_NULL);
 
-    reduct_list_iter_t iter = REDUCT_LIST_ITER(other);
     reduct_handle_t val;
-    while (reduct_list_iter_next(&iter, &val))
+    REDUCT_LIST_FOR_EACH(&val, other)
     {
         reduct_list_append(reduct, list, val);
     }

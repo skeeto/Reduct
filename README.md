@@ -193,7 +193,7 @@ Note how in Reduct the use of curly braces for infix notation and the `def` intr
 
 ### Flexibility
 
-Just like all Lisps, Reduct is very flexible and homoiconic. This means that code and data are represented using the same structures, which allows Reduct to be used for practically anything.
+Since code and data are represented using the same structures, Reduct can be used for practically anything.
 
 One of Reducts original intended use cases was for a C UI library, where it would act as both the markup and scripting language, almost like a combination of HTML, CSS and JavaScript.
 
@@ -549,6 +549,14 @@ Outputs an 80 by 40 visualization of the Mandelbrot set with 10000 iterations.
 |:---|---:|---:|---:|---:|
 | `reduct bench/mandelbrot.rdt` | 330.7 ± 8.3 | 318.0 | 347.3 | 1.00 |
 | `lua bench/mandelbrot.lua` | 369.2 ± 14.3 | 356.5 | 403.3 | 1.12 ± 0.05 |
+
+## Testing
+
+Testing is done via the `tests/run_tests.sh" script.
+
+The script will compile the CLI tool with clang `-fsanitize=address,undefined`, run a set of test scripts found in `tests/` and then use libfuzzer to fuzz the parser, compiler and evaluator.
+
+In addition to the test script, the code base heavily uses assertions to, hopefully, catch any potential bugs or regressions.
 
 ## Grammar
 
@@ -1028,9 +1036,9 @@ Returns the provided atoms as a list of the integer values for each character.
 
 Returns a new atom created by converting the provided lists of integer values back into their corresponding ASCII characters.
 
-**`(repeat <item> <n: number>) -> <item>`**
+**`(repeat <item> <n: number>) -> <list>`**
 
-Returns a new list or atom containing the original item repeated `<n>` times.
+Returns a new list containing the original item repeated `<n>` times.
 
 ---
 
@@ -1130,6 +1138,8 @@ Returns the stringified representation of the item.
 
 ---
 
+````
+
 #### System & Environment
 
 **`(eval <item>) -> <item>`**
@@ -1140,13 +1150,17 @@ Evaluates the provided item and returns the result.
 
 Parses the provided string into a Reduct expression without evaluating it.
 
+**`(run <atom>) -> <item>`**
+
+Parses and evaluates the provided string.
+
 **`(load! <path: string>) -> <item>`**
 
 Parses and evaluates the file at the provided path, returning the result.
 
 **`(read-file! <path: string>) -> <string>`**
 
-Reads the file at the given path and returns its contents as a raw string atom without evaluating it.
+Reads the file at the given path and returns its contents as a string atom without evaluating it.
 
 **`(write-file! <path: string> <content: item>) -> <content: item>`**
 

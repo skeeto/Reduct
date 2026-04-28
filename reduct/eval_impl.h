@@ -5,7 +5,9 @@
 #include "defs.h"
 #include "eval.h"
 #include "item.h"
-#include "stdlib.h"
+#include "standard.h"
+#include "parse.h"
+#include "compile.h"
 
 static void reduct_eval_state_init(reduct_t* reduct, reduct_eval_state_t* state)
 {
@@ -95,7 +97,7 @@ static inline REDUCT_ALWAYS_INLINE void reduct_eval_push_frame(reduct_t* reduct,
     state->regCount = neededRegs;
 }
 
-static inline REDUCT_ALWAYS_INLINE void reduct_eval_pOP_frame(reduct_eval_state_t* state)
+static inline REDUCT_ALWAYS_INLINE void reduct_eval_pop_frame(reduct_eval_state_t* state)
 {
     REDUCT_ASSERT(state != REDUCT_NULL);
     REDUCT_ASSERT(state->frameCount > 0);
@@ -121,6 +123,17 @@ static inline REDUCT_ALWAYS_INLINE void reduct_eval_tail_frame(reduct_t* reduct,
     frame->closure = closure;
     frame->ip = closure->function->insts;
 }
+
+typedef struct
+{
+    reduct_eval_frame_t* frame;
+    reduct_inst_t* ip;
+    reduct_handle_t* base;
+    reduct_handle_t* constants;
+    reduct_inst_t inst;
+    reduct_opcode_t op;
+    reduct_handle_t result;
+} eval_run_state_t;
 
 static reduct_handle_t reduct_eval_run(reduct_t* reduct, reduct_eval_state_t* state, reduct_uint32_t initialFrameCount)
 {
@@ -362,7 +375,7 @@ LABEL_C_OP(label_tailcall, {
 
         frame = &state->frames[state->frameCount - 1];
         state->regs[frame->base] = res;
-        reduct_eval_pOP_frame(state);
+        reduct_eval_pop_frame(state);
 
         if (REDUCT_UNLIKELY(state->frameCount == initialFrameCount))
         {
@@ -388,7 +401,7 @@ LABEL_C_OP(label_mov, {
 })
 LABEL_C_OP(label_ret, {
     state->regs[frame->base] = valC;
-    reduct_eval_pOP_frame(state);
+    reduct_eval_pop_frame(state);
     if (REDUCT_UNLIKELY(state->frameCount == initialFrameCount))
     {
         result = valC;
@@ -500,6 +513,26 @@ REDUCT_API reduct_handle_t reduct_eval(struct reduct* reduct, reduct_function_t*
     reduct_eval_push_frame(reduct, state, closure, state->regCount);
 
     return reduct_eval_run(reduct, state, initialFrameCount);
+}
+
+REDUCT_API reduct_handle_t reduct_eval_file(reduct_t* reduct, const char* path)
+{
+    REDUCT_ASSERT(reduct != REDUCT_NULL);
+    REDUCT_ASSERT(path != REDUCT_NULL);
+
+    reduct_handle_t parsed = reduct_parse_file(reduct, path);
+    reduct_function_t* function = reduct_compile(reduct, &parsed);
+    return reduct_eval(reduct, function);
+}
+
+REDUCT_API reduct_handle_t reduct_eval_string(reduct_t* reduct, const char* str, reduct_size_t len)
+{
+    REDUCT_ASSERT(reduct != REDUCT_NULL);
+    REDUCT_ASSERT(str != REDUCT_NULL);
+
+    reduct_handle_t parsed = reduct_parse(reduct, str, len, "eval");
+    reduct_function_t* function = reduct_compile(reduct, &parsed);
+    return reduct_eval(reduct, function);
 }
 
 REDUCT_API reduct_handle_t reduct_eval_call(reduct_t* reduct, reduct_handle_t callable, reduct_size_t argc, reduct_handle_t* argv)

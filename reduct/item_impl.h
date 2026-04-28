@@ -12,7 +12,6 @@ static inline void reduct_item_init(reduct_item_t* item)
     item->type = REDUCT_ITEM_TYPE_NONE;
     item->flags = 0;
     item->retainCount = 0;
-    item->length = 0;
     item->input = REDUCT_NULL;
     item->position = 0;
 }

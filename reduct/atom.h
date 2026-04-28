@@ -83,10 +83,9 @@ static inline REDUCT_ALWAYS_INLINE reduct_uint32_t reduct_hash(const char* str, 
 /**
  * @brief Initialize an atom.
  *
- * @param reduct Pointer to the Reduct structure.
  * @param atom Pointer to the atom to initialize.
  */
-static inline void reduct_atom_init(struct reduct* reduct, reduct_atom_t* atom)
+static inline void reduct_atom_init(reduct_atom_t* atom)
 {
     REDUCT_ASSERT(atom != REDUCT_NULL);
     atom->length = 0;

@@ -31,11 +31,14 @@
 
     (assert! (== (nth nums 2) 3) "nth should return the n-th item of a list")
     (assert! (== (nth text 1) "e") "nth should return the n-th character of a string")
+    (assert! (== (nth nums 10 "default") "default") "nth should return default if out of bounds")
     (assert! (== (nth nums -1) 5) "nth should return the n-th item from the end of a list")
     (assert! (== (nth text -2) "l") "nth should return the n-th character from the end of a string")
 
     (assert! (== (assoc nums 0 2) (2 2 3 4 5) ) "assoc should return a new list with the element at the index replaced")
+    (assert! (== (assoc (1 2) 4 10 0) (1 2 0 0 10)) "assoc should extend list with fill value if index is out of bounds")
     (assert! (== (assoc nums -1 10) (1 2 3 4 10)) "assoc should return handle negative indices")
+    (assert! (== (assoc "abc" 1 "z") "azc") "assoc should work on strings")
 
     (assert! (== (dissoc nums 2) (1 2 4 5)) "dissoc should return a new list with the element at the index removed")
     (assert! (== (dissoc nums -1) (1 2 3 4)) "dissoc should handle negative indices")
@@ -71,11 +74,16 @@
     (assert! (== (chunk (1 2 3 4 5 6) 2) ((1 2) (3 4) (5 6))) "chunk should split a list into sub-lists of a given size")
     (assert! (== (chunk (1 2 3 4 5) 3) ((1 2 3) (4 5))) "chunk should handle lists not perfectly divisible by the size")
 
+    (assert! (== (explode "ABC") (65 66 67)) "explode should return a list of character codes")
+    (assert! (== (implode (65 66 67)) "ABC") "implode should create a string from character codes")
+    (assert! (== (repeat "A" 3) ("A" "A" "A")) "repeat should duplicate an atom n times")
+    (assert! (== (repeat (1) 2) ((1) (1))) "repeat should duplicate a list n times")
+
     (assert! (== (find nums (lambda (x) (> x 3))) 4) "find should return the first item that satisfies the predicate")
     (assert! (== (find nums (lambda (x) (> x 10))) nil) "find should return nil if no item satisfies the predicate")
 
     (def data (("a" 1) ("b" 2) ("c" (("d" 3)))))
-    (assert! (== (get-in data ("c" "d")) 3) "get-in should retrieve a value from a nested association list")
+    (assert! (== (get-in data ("c" "d")) 3) "get-in should retrieve a value from a nested association list using path")
     (assert! (== (get-in data "a") 1) "get-in should work with a single atom path")
     (assert! (== (get-in data ("c" "x") 42) 42) "get-in should return the default value if the path is not found")
 

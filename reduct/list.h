@@ -160,7 +160,7 @@ typedef struct reduct_list_iter
  * @param _list The list to iterate over.
  * @param _start The starting index.
  */
-#define REDUCT_LIST_ITER_AT(_list, _start) {(_list), ((_start) > (_list)->length) ? (_list)->length : (_start), REDUCT_NULL, REDUCT_LIST_TAIL_OFFSET(_list) }
+#define REDUCT_LIST_ITER_AT(_list, _start) {(_list), (_start), REDUCT_NULL, REDUCT_LIST_TAIL_OFFSET(_list) }
          
 /**
  * @brief Get the next element from the iterator.
@@ -178,5 +178,14 @@ REDUCT_API reduct_bool_t reduct_list_iter_next(reduct_list_iter_t* iter, reduct_
  * @param _list Pointer to the reduct_list_t to iterate.
  */
 #define REDUCT_LIST_FOR_EACH(_handle, _list) for (reduct_list_iter_t _iter = REDUCT_LIST_ITER(_list); reduct_list_iter_next(&_iter, (_handle)); )
+
+/**
+ * @brief Macro for iterating over elements in a list starting from a specific index.
+ *
+ * @param _handle The reduct_handle_t variable to store each element.
+ * @param _list Pointer to the reduct_list_t to iterate.
+ * @param _start The starting index.
+ */
+#define REDUCT_LIST_FOR_EACH_AT(_handle, _list, _start) for (reduct_list_iter_t _iter = REDUCT_LIST_ITER_AT(_list, _start); reduct_list_iter_next(&_iter, (_handle)); )
 
 #endif

@@ -79,11 +79,11 @@ REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a,
     reduct_item_t* itemA = REDUCT_HANDLE_TO_ITEM(a);
     reduct_item_t* itemB = REDUCT_HANDLE_TO_ITEM(b);
 
-    if ((REDUCT_HANDLE_GET_FLAGS(a) & REDUCT_ITEM_FLAG_FLOAT_SHAPED) ||
-        (REDUCT_HANDLE_GET_FLAGS(b) & REDUCT_ITEM_FLAG_FLOAT_SHAPED))
+    if ((itemA->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED) ||
+        (itemB->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED))
     {
         out->type = REDUCT_PROMOTION_TYPE_FLOAT;
-        if (REDUCT_HANDLE_GET_FLAGS(a) & REDUCT_ITEM_FLAG_FLOAT_SHAPED)
+        if (itemA->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED)
         {
             out->a.floatVal = itemA->atom.floatValue;
         }
@@ -92,7 +92,7 @@ REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a,
             out->a.floatVal = (reduct_float_t)itemA->atom.integerValue;
         }
 
-        if (REDUCT_HANDLE_GET_FLAGS(b) & REDUCT_ITEM_FLAG_FLOAT_SHAPED)
+        if (itemB->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED)
         {
             out->b.floatVal = itemB->atom.floatValue;
         }
@@ -101,8 +101,8 @@ REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a,
             out->b.floatVal = (reduct_float_t)itemB->atom.integerValue;
         }
     }
-    else if ((REDUCT_HANDLE_GET_FLAGS(a) & REDUCT_ITEM_FLAG_INT_SHAPED) &&
-        (REDUCT_HANDLE_GET_FLAGS(b) & REDUCT_ITEM_FLAG_INT_SHAPED))
+    else if ((itemA->flags & REDUCT_ITEM_FLAG_INT_SHAPED) &&
+        (itemB->flags & REDUCT_ITEM_FLAG_INT_SHAPED))
     {
         out->type = REDUCT_PROMOTION_TYPE_INT;
         out->a.intVal = itemA->atom.integerValue;
@@ -126,10 +126,64 @@ REDUCT_API reduct_bool_t reduct_handle_is_equal(reduct_t* reduct, reduct_handle_
         return REDUCT_TRUE;
     }
 
+    if (REDUCT_HANDLE_IS_NUMBER_SHAPED(a) && REDUCT_HANDLE_IS_NUMBER_SHAPED(b))
+    {
+        reduct_promotion_t prom;
+        reduct_handle_promote(reduct, a, b, &prom);
+        if (prom.type == REDUCT_PROMOTION_TYPE_INT)
+        {
+            return prom.a.intVal == prom.b.intVal;
+        }
+        return prom.a.floatVal == prom.b.floatVal;
+    }
+
     reduct_handle_ensure_item(reduct, a);
     reduct_handle_ensure_item(reduct, b);
 
-    return *a == *b;
+    reduct_item_t* itemA = REDUCT_HANDLE_TO_ITEM(a);
+    reduct_item_t* itemB = REDUCT_HANDLE_TO_ITEM(b);
+
+    if (itemA == itemB)
+    {
+        return REDUCT_TRUE;
+    }
+
+    if (itemA->type != itemB->type)
+    {
+        return REDUCT_FALSE;
+    }
+
+    if (itemA->flags != itemB->flags)
+    {
+        return REDUCT_FALSE;
+    }
+
+    if (itemA->type == REDUCT_ITEM_TYPE_LIST)
+    {
+        reduct_list_t* listA = &itemA->list;
+        reduct_list_t* listB = &itemB->list;
+
+        if (listA->length != listB->length)
+        {
+            return REDUCT_FALSE;
+        }
+
+        reduct_list_iter_t iterA = REDUCT_LIST_ITER(listA);
+        reduct_list_iter_t iterB = REDUCT_LIST_ITER(listB);
+        reduct_handle_t itemA, itemB;
+
+        while (reduct_list_iter_next(&iterA, &itemA) && reduct_list_iter_next(&iterB, &itemB))
+        {
+            if (!reduct_handle_is_equal(reduct, &itemA, &itemB))
+            {
+                return REDUCT_FALSE;
+            }
+        }
+
+        return REDUCT_TRUE;
+    }
+
+    return REDUCT_FALSE;
 }
 
 typedef struct
@@ -261,21 +315,15 @@ REDUCT_API reduct_int64_t reduct_handle_compare(reduct_t* reduct, reduct_handle_
     reduct_size_t lenB = listB ? listB->length : 0;
     reduct_size_t minLen = lenA < lenB ? lenA : lenB;
 
-    if (minLen > 0)
+    reduct_list_iter_t iterA = REDUCT_LIST_ITER(listA);
+    reduct_list_iter_t iterB = REDUCT_LIST_ITER(listB);
+    reduct_handle_t itemA, itemB;
+    while (iterA.index < minLen && reduct_list_iter_next(&iterA, &itemA) && reduct_list_iter_next(&iterB, &itemB))
     {
-        reduct_list_iter_t iterA = REDUCT_LIST_ITER(listA);
-        reduct_list_iter_t iterB = REDUCT_LIST_ITER(listB);
-        reduct_handle_t itemA, itemB;
-
-        for (reduct_size_t i = 0; i < minLen; i++)
+        reduct_int64_t cmp = reduct_handle_compare(reduct, &itemA, &itemB);
+        if (cmp != 0)
         {
-            reduct_list_iter_next(&iterA, &itemA);
-            reduct_list_iter_next(&iterB, &itemB);
-            reduct_int64_t cmp = reduct_handle_compare(reduct, &itemA, &itemB);
-            if (cmp != 0)
-            {
-                return cmp;
-            }
+            return cmp;
         }
     }
 

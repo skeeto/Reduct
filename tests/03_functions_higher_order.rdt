@@ -2,6 +2,14 @@
     (def add (lambda (a b) (+ a b)))
     (assert! (== (add 2 3) 5) "lambda should bind arguments and return the result of the body")
 
+    (def factorial (lambda (n)
+        (if (<= n 1) 1 (* n (factorial (- n 1))))
+    ))
+    (assert! (== (factorial 5) 120) "lambda should support recursion")
+
+    (assert! (== (-> 10 (+ 5) (* 2)) 30) "threading intrinsic (->) should pipe values sequentially")
+    (assert! (== (-> "hello" (upper) (concat "!") (len)) 6) "threading intrinsic should work with strings and sequences")
+
     (def multi-expr (lambda (x)
         (* x 3)
         (+ x 5)
@@ -25,10 +33,11 @@
 
     (def sum (lambda (acc x) (+ acc x)))
     (assert! (== (reduce nums 0 sum) 15) "reduce should accumulate the list into a single value")
+    (assert! (== (reduce nums sum) 15) "reduce without initial value should use the first element")
     (assert! (== (reduce () 100 sum) 100) "reduce on an empty list should return the initial accumulator")
 
     (def args (list 1 2 3))
-    (assert! (== (apply (lambda (a b c) (* a b c)) args) 6) "apply should work with lambdas and a list of arguments")
+    (assert! (== (apply args (lambda (a b c) (* a b c))) 6) "apply should work with lambdas and a list of arguments")
 
     (assert! (any? (list false false true false) (lambda (x) x)) "any? should return true if at least one element satisfies the predicate")
     (assert! (not (any? (list false false false) (lambda (x) x))) "any? should return false if no elements satisfy the predicate")

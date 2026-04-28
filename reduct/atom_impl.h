@@ -22,7 +22,7 @@ REDUCT_API void reduct_atom_deinit(reduct_t* reduct, reduct_atom_t* atom)
         current = &(*current)->next;
     }
 
-    if (atom->length >= REDUCT_ATOM_SMALL_MAX)
+    if (atom->string != atom->small)
     {
         REDUCT_FREE(atom->string);
     }
@@ -217,7 +217,7 @@ static inline void reduct_atom_normalize_escape(reduct_t* reduct, reduct_atom_t*
         if (str[i] == '\\' && i + 1 < len)
         {
             i++;
-            const reduct_char_info_t* info = &reductCharTable[str[i]];
+            const reduct_char_info_t* info = &reductCharTable[(unsigned char)str[i]];
             if (info->decodeEscape != 0)
             {
                 str[j++] = info->decodeEscape;
@@ -263,7 +263,6 @@ REDUCT_API void reduct_atom_normalize(reduct_t* reduct, reduct_atom_t* atom)
     if (item->flags & REDUCT_ITEM_FLAG_QUOTED)
     {
         reduct_atom_normalize_escape(reduct, atom);
-        return;
     }
 
     const char* p = atom->string;
@@ -381,10 +380,9 @@ REDUCT_API void reduct_atom_normalize(reduct_t* reduct, reduct_atom_t* atom)
     double fractionDiv = 10.0;
     reduct_bool_t inFraction = REDUCT_FALSE;
     reduct_bool_t inExponent = REDUCT_FALSE;
-    int expSign = 1;
-    int expValue = 0;
-    int fractionDigits = 0;
-    int exponentDigits = 0;
+    reduct_int64_t expSign = 1;
+    reduct_int64_t expValue = 0;
+    reduct_int64_t exponentDigits = 0;
 
     if (*p == '.')
     {
@@ -420,7 +418,6 @@ REDUCT_API void reduct_atom_normalize(reduct_t* reduct, reduct_atom_t* atom)
             {
                 floatValue = floatValue + reductCharTable[c].integer / fractionDiv;
                 fractionDiv *= 10.0;
-                fractionDigits++;
             }
             else
             {

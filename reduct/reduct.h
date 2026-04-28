@@ -14,7 +14,7 @@
 #include "list.h"
 #include "native.h"
 #include "parse.h"
-#include "stdlib.h"
+#include "standard.h"
 #include "stringify.h"
 
 #if defined(REDUCT_INLINE) || defined(REDUCT_IMPL)
@@ -34,7 +34,7 @@
 #include "list_impl.h"
 #include "native_impl.h"
 #include "parse_impl.h"
-#include "stdlib_impl.h"
+#include "standard_impl.h"
 #include "stringify_impl.h"
 #endif
 

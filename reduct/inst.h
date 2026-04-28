@@ -87,35 +87,40 @@ typedef enum
 typedef reduct_uint16_t reduct_reg_t;
 
 /**
+ * @brief Invalid register value.
+ */
+#define REDUCT_REG_INVALID ((reduct_reg_t)-1)
+
+/**
  * @brief Reduct instruction type.
  */
 typedef reduct_uint32_t reduct_inst_t;
 
-#define REDUCT_INST_WIDTH_OPCODE 6                                    ///< Opcode width in bits.
-#define REDUCT_INST_WIDTH_A 8                                         ///< A operand width in bits.
-#define REDUCT_INST_WIDTH_B 8                                         ///< B operand width in bits.
-#define REDUCT_INST_WIDTH_C 10                                        ///< C operand width in bits.
+#define REDUCT_INST_WIDTH_OPCODE 6ULL                                    ///< Opcode width in bits.
+#define REDUCT_INST_WIDTH_A 8ULL                                         ///< A operand width in bits.
+#define REDUCT_INST_WIDTH_B 8ULL                                         ///< B operand width in bits.
+#define REDUCT_INST_WIDTH_C 10ULL                                        ///< C operand width in bits.
 #define REDUCT_INST_WIDTH_SBX (REDUCT_INST_WIDTH_B + REDUCT_INST_WIDTH_C) ///< SBx operand width in bits.
 
 /**
  * @brief The max number of registers per function frame.
  */
-#define REDUCT_REGISTER_MAX (1 << REDUCT_INST_WIDTH_A)
+#define REDUCT_REGISTER_MAX (1ULL << REDUCT_INST_WIDTH_A)
 /**
  * @brief The max number of constants per function.
  */
-#define REDUCT_CONSTANT_MAX (1 << REDUCT_INST_WIDTH_C)
+#define REDUCT_CONSTANT_MAX (1ULL << REDUCT_INST_WIDTH_C)
 
-#define REDUCT_INST_POS_OPCODE 0                                          ///< Opcode position in bits.
+#define REDUCT_INST_POS_OPCODE 0ULL                                          ///< Opcode position in bits.
 #define REDUCT_INST_POS_A (REDUCT_INST_POS_OPCODE + REDUCT_INST_WIDTH_OPCODE) ///< A operand position in bits.
 #define REDUCT_INST_POS_B (REDUCT_INST_POS_A + REDUCT_INST_WIDTH_A)           ///< B operand position in bits.
 #define REDUCT_INST_POS_C (REDUCT_INST_POS_B + REDUCT_INST_WIDTH_B)           ///< C operand position in bits.
 
-#define REDUCT_INST_MASK_OPCODE ((1 << REDUCT_INST_WIDTH_OPCODE) - 1) ///< Opcode mask.
-#define REDUCT_INST_MASK_A ((1 << REDUCT_INST_WIDTH_A) - 1)           ///< A operand mask.
-#define REDUCT_INST_MASK_B ((1 << REDUCT_INST_WIDTH_B) - 1)           ///< B operand mask.
-#define REDUCT_INST_MASK_C ((1 << REDUCT_INST_WIDTH_C) - 1)           ///< C operand mask.
-#define REDUCT_INST_MASK_SBX ((1 << REDUCT_INST_WIDTH_SBX) - 1)       ///< SBx operand mask.
+#define REDUCT_INST_MASK_OPCODE ((1ULL << REDUCT_INST_WIDTH_OPCODE) - 1ULL) ///< Opcode mask.
+#define REDUCT_INST_MASK_A ((1ULL << REDUCT_INST_WIDTH_A) - 1ULL)           ///< A operand mask.
+#define REDUCT_INST_MASK_B ((1ULL << REDUCT_INST_WIDTH_B) - 1ULL)           ///< B operand mask.
+#define REDUCT_INST_MASK_C ((1ULL << REDUCT_INST_WIDTH_C) - 1ULL)           ///< C operand mask.
+#define REDUCT_INST_MASK_SBX ((1ULL << REDUCT_INST_WIDTH_SBX) - 1ULL)       ///< SBx operand mask.
 
 /**
  * @brief Create an instruction with opcode, A, B, and C operands.
@@ -184,8 +189,8 @@ typedef reduct_uint32_t reduct_inst_t;
  * @param _inst Instruction.
  */
 #define REDUCT_INST_GET_SBX(_inst) \
-    ((reduct_int32_t)(((_inst) >> REDUCT_INST_POS_B) & REDUCT_INST_MASK_SBX) << (32 - REDUCT_INST_WIDTH_SBX) >> \
-        (32 - REDUCT_INST_WIDTH_SBX))
+    ((reduct_int64_t)(((_inst) >> REDUCT_INST_POS_B) & REDUCT_INST_MASK_SBX) << (32ULL - REDUCT_INST_WIDTH_SBX) >> \
+        (32ULL - REDUCT_INST_WIDTH_SBX))
 
 /**
  * @brief Set the A operand in an instruction.

@@ -26,7 +26,48 @@ configure_file(
     "${CMAKE_CURRENT_BINARY_DIR}/reduct_version.h"
 )
 
-target_include_directories(reduct PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(reduct PRIVATE 
+    "${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../.."
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../reduct"
+)
+
+option(REDUCT_USE_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
+if(REDUCT_USE_SANITIZERS)
+    if(NOT MSVC)
+        target_compile_options(reduct PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+        target_link_options(reduct PRIVATE -fsanitize=address,undefined)
+    endif()
+endif()
+
+option(REDUCT_USE_FUZZER "Enable libFuzzer build" OFF)
+if(REDUCT_USE_FUZZER)
+    if(MSVC)
+        message(FATAL_ERROR "libFuzzer is not supported on MSVC")
+    endif()
+
+    add_executable(fuzz fuzz.c)
+
+    target_include_directories(fuzz PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../.."
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../reduct"
+    )
+
+    target_compile_options(fuzz PRIVATE
+        -fsanitize=fuzzer,address,undefined
+        -fno-omit-frame-pointer
+        -g
+    )
+    target_link_options(fuzz PRIVATE
+        -fsanitize=fuzzer,address,undefined
+    )
+    target_link_libraries(fuzz m)
+endif()
+
+if(NOT MSVC)
+    target_compile_options(reduct PRIVATE -Wall -Wextra -Werror)
+endif()
 
 install(TARGETS reduct RUNTIME DESTINATION bin)
 

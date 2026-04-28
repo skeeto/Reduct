@@ -8,9 +8,9 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tools/reduct/build/reduct",
+            "program": "${workspaceFolder}/tools/reduct-cli/build/reduct",
             "args": [
-                "${workspaceFolder}/bench/brainfuck.rdt"
+                "${workspaceFolder}/tests/02_control_flow_logic.rdt"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

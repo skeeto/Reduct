@@ -41,6 +41,7 @@ typedef struct
     reduct_size_t regionLength; ///< The length of the region that caused the error.
     reduct_size_t index;        ///< The index of the region in the input buffer that caused the error.
     reduct_jmp_buf_t jmp;
+    reduct_error_type_t type;   ///< The type of the error.
     char message[REDUCT_ERROR_MAX_LEN];
 } reduct_error_t;
 

@@ -124,22 +124,22 @@ struct reduct;
 #define REDUCT_HANDLE_IS_FLOAT(_handle) ((*(_handle)) >= REDUCT_HANDLE_OFFSET_FLOAT)
 
 /**
- * @brief Check if a handle is integer shaped.
+ * @brief Check if a handle is an integer of references a integer shaped item.
  *
  * @param _handle Pointer to the handle.
  * @return Non-zero if the handle is integer shaped, zero otherwise.
  */
 #define REDUCT_HANDLE_IS_INT_SHAPED(_handle) \
-    (REDUCT_HANDLE_IS_INT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_INT_SHAPED))
+    ((REDUCT_HANDLE_IS_INT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_INT_SHAPED)) && !(REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_QUOTED))
 
 /**
- * @brief Check if a handle is float shaped.
+ * @brief Check if a handle is a float or references a float shaped item.
  *
  * @param _handle Pointer to the handle.
  * @return Non-zero if the handle is float shaped, zero otherwise.
  */
 #define REDUCT_HANDLE_IS_FLOAT_SHAPED(_handle) \
-    (REDUCT_HANDLE_IS_FLOAT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_FLOAT_SHAPED))
+    ((REDUCT_HANDLE_IS_FLOAT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_FLOAT_SHAPED)) && !(REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_QUOTED))
 
 /**
  * @brief Get the type of the item referenced by the handle, or `REDUCT_ITEM_TYPE_ATOM` if not an item.
@@ -150,12 +150,12 @@ struct reduct;
     (REDUCT_HANDLE_IS_ITEM(_handle) ? REDUCT_HANDLE_TO_ITEM(_handle)->type : REDUCT_ITEM_TYPE_ATOM)
 
 /**
- * @brief Check if a handle is a number.
+ * @brief Check if a handle is a number or references a number shaped item.
  *
  * @param _handle Pointer to the handle.
  * @return Non-zero if the handle is a number, zero otherwise.
  */
-#define REDUCT_HANDLE_IS_NUMBER(_handle) (REDUCT_HANDLE_IS_INT_SHAPED(_handle) || REDUCT_HANDLE_IS_FLOAT_SHAPED(_handle))
+#define REDUCT_HANDLE_IS_NUMBER_SHAPED(_handle) (REDUCT_HANDLE_IS_INT_SHAPED(_handle) || REDUCT_HANDLE_IS_FLOAT_SHAPED(_handle))
 
 /**
  * @brief Check if a handle is an item.

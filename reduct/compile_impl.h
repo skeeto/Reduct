@@ -18,6 +18,7 @@ REDUCT_API reduct_function_t* reduct_compile(reduct_t* reduct, reduct_handle_t* 
     reduct_function_t* func = reduct_function_new(reduct);
     reduct_item_t* funcItem = REDUCT_CONTAINER_OF(func, reduct_item_t, function);
     REDUCT_GC_RETAIN_ITEM(reduct, funcItem);
+    
     reduct_compiler_t compiler;
     reduct_compiler_init(&compiler, reduct, func, REDUCT_NULL);
 
@@ -81,7 +82,7 @@ REDUCT_API reduct_reg_t reduct_reg_alloc(reduct_compiler_t* compiler)
     }
 
     REDUCT_ERROR_COMPILE(compiler, compiler->lastItem, "too many registers in function");
-    return (reduct_reg_t)-1;
+    return REDUCT_REG_INVALID;
 }
 
 REDUCT_API reduct_reg_t reduct_reg_alloc_range(reduct_compiler_t* compiler, reduct_uint32_t count)
@@ -117,12 +118,16 @@ REDUCT_API reduct_reg_t reduct_reg_alloc_range(reduct_compiler_t* compiler, redu
     }
 
     REDUCT_ERROR_COMPILE(compiler, compiler->lastItem, "too many registers in function");
-    return (reduct_reg_t)-1;
+    return REDUCT_REG_INVALID;
 }
 
 REDUCT_API void reduct_reg_free(reduct_compiler_t* compiler, reduct_reg_t reg)
 {
     REDUCT_ASSERT(compiler != REDUCT_NULL);
+    if (reg >= REDUCT_REGISTER_MAX)
+    {
+        return;
+    }
 
     if (REDUCT_REG_IS_LOCAL(compiler, reg))
     {
@@ -201,7 +206,7 @@ static inline void reduct_expr_build_list(reduct_compiler_t* compiler, reduct_it
     reduct_item_t* head = reduct_list_nth_item(compiler->reduct, &list->list, 0);
     if ((head->flags & REDUCT_ITEM_FLAG_QUOTED) ||
         (head->type == REDUCT_ITEM_TYPE_ATOM &&
-            (head->flags & (REDUCT_ITEM_FLAG_INT_SHAPED | REDUCT_ITEM_FLAG_FLOAT_SHAPED))))
+            (head->flags & (REDUCT_ITEM_FLAG_INT_SHAPED | REDUCT_ITEM_FLAG_FLOAT_SHAPED))) || head->type == REDUCT_ITEM_TYPE_LIST)
     {
         reduct_reg_t target = reduct_expr_get_reg(compiler, out);
         reduct_compile_list(compiler, target);
@@ -213,6 +218,7 @@ static inline void reduct_expr_build_list(reduct_compiler_t* compiler, reduct_it
             reduct_expr_t argExpr = REDUCT_EXPR_NONE();
             reduct_expr_build(compiler, item, &argExpr);
 
+            REDUCT_ASSERT(argExpr.mode != REDUCT_MODE_NONE);
             reduct_compile_append(compiler, target, &argExpr);
 
             reduct_expr_done(compiler, &argExpr);
@@ -250,11 +256,12 @@ static inline void reduct_expr_build_list(reduct_compiler_t* compiler, reduct_it
     reduct_expr_t callable = REDUCT_EXPR_NONE();
     reduct_expr_build(compiler, head, &callable);
 
-    for (reduct_uint32_t i = 1; i < (reduct_uint32_t)list->length; i++)
+    reduct_handle_t argH;
+    REDUCT_LIST_FOR_EACH_AT(&argH, &list->list, 1)
     {
-        reduct_reg_t target = base + i - 1;
+        reduct_reg_t target = (reduct_reg_t)(base + _iter.index - 2);
         reduct_expr_t argExpr = REDUCT_EXPR_TARGET(target);
-        reduct_expr_build(compiler, reduct_list_nth_item(compiler->reduct, &list->list, i), &argExpr);
+        reduct_expr_build(compiler, REDUCT_HANDLE_TO_ITEM(&argH), &argExpr);
 
         if (argExpr.mode != REDUCT_MODE_REG || argExpr.reg != target)
         {
@@ -349,6 +356,43 @@ REDUCT_API reduct_local_t* reduct_local_add_arg(reduct_compiler_t* compiler, red
     REDUCT_REG_SET_LOCAL(compiler, reg);
 
     return &compiler->locals[compiler->localCount++];
+}
+
+
+REDUCT_API void reduct_local_pop(reduct_compiler_t* compiler, reduct_uint16_t toCount, reduct_expr_t* result)
+{
+    REDUCT_ASSERT(compiler != REDUCT_NULL);
+    reduct_reg_t resultReg = (result != REDUCT_NULL && result->mode == REDUCT_MODE_REG) ? result->reg : REDUCT_REG_INVALID;
+
+    for (reduct_uint32_t i = compiler->localCount; i > (reduct_uint32_t)toCount; i--)
+    {
+        reduct_local_t* local = &compiler->locals[i - 1];
+        if (local->expr.mode == REDUCT_MODE_REG)
+        {
+            reduct_bool_t isResult = (local->expr.reg == resultReg);
+            reduct_bool_t isOuterLocal = REDUCT_FALSE;
+            for (reduct_uint32_t j = 0; j < (reduct_uint32_t)toCount; j++)
+            {
+                if (compiler->locals[j].expr.mode == REDUCT_MODE_REG && compiler->locals[j].expr.reg == local->expr.reg)
+                {
+                    isOuterLocal = REDUCT_TRUE;
+                    break;
+                }
+            }
+
+            if (!isOuterLocal)
+            {
+                REDUCT_REG_CLEAR_LOCAL(compiler, local->expr.reg);
+                if (!isResult)
+                {
+                    REDUCT_REG_CLEAR_ALLOCATED(compiler, local->expr.reg);
+                }
+            }
+        }
+        local->name = REDUCT_NULL;
+        local->expr = REDUCT_EXPR_NONE();
+    }
+    compiler->localCount = toCount;
 }
 
 REDUCT_API reduct_local_t* reduct_local_lookup(reduct_compiler_t* compiler, reduct_atom_t* name)

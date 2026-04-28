@@ -56,20 +56,18 @@ static inline reduct_size_t reduct_stringify_internal(reduct_t* reduct, reduct_h
         written += res;
 
         reduct_handle_t child;
-        reduct_size_t i = 0;
         REDUCT_LIST_FOR_EACH(&child, &item->list)
         {
             res = reduct_stringify(reduct, &child, size > written ? buffer + written : REDUCT_NULL,
                 size > written ? size - written : 0);
             written += res;
 
-            if (i < item->length - 1)
+            if (_iter.index < item->length)
             {
                 res = REDUCT_SNPRINTF(size > written ? buffer + written : REDUCT_NULL, size > written ? size - written : 0,
                     " ");
                 written += res;
             }
-            i++;
         }
 
         res = REDUCT_SNPRINTF(size > written ? buffer + written : REDUCT_NULL, size > written ? size - written : 0, ")");

@@ -5,6 +5,23 @@
 #include "eval.h"
 #include "item.h"
 
+static inline const char* reduct_error_type_str(reduct_error_type_t type)
+{
+    switch (type)
+    {
+        case REDUCT_ERROR_TYPE_SYNTAX:
+            return "syntax error";
+        case REDUCT_ERROR_TYPE_COMPILE:
+            return "compile error";
+        case REDUCT_ERROR_TYPE_RUNTIME:
+            return "runtime error";
+        case REDUCT_ERROR_TYPE_INTERNAL:
+            return "internal error";
+        default:
+            return "error";
+    }
+}
+
 static inline reduct_size_t reduct_error_get_region_length(const char* ptr, const char* end)
 {
     if (ptr >= end)
@@ -87,13 +104,15 @@ REDUCT_API void reduct_error_print(reduct_error_t* error, reduct_file_t file)
     reduct_size_t column;
     reduct_error_get_row_column(error, &row, &column);
 
+    const char* typeStr = reduct_error_type_str(error->type);
+
     if (error->path != REDUCT_NULL)
     {
-        REDUCT_FPRINTF(file, "%s:%zu:%zu: error: %s\n", error->path, row, column, error->message);
+        REDUCT_FPRINTF(file, "%s:%zu:%zu: %s: %s\n", error->path, row, column, typeStr, error->message);
     }
     else
     {
-        REDUCT_FPRINTF(file, "error: %s\n", error->message);
+        REDUCT_FPRINTF(file, "%s: %s\n", typeStr, error->message);
     }
 
     if (error->input != REDUCT_NULL)
@@ -169,6 +188,7 @@ REDUCT_API void reduct_error_set(reduct_error_t* error, const char* path, const 
     error->input = input;
     error->inputLength = inputLength;
     error->regionLength = regionLength;
+    error->type = type;
     error->index = position;
 
     reduct_va_list args;

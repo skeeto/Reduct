@@ -122,6 +122,8 @@ typedef double reduct_float_t;
 #define REDUCT_MIN(_a, _b) ((_a) < (_b) ? (_a) : (_b))
 #define REDUCT_MAX(_a, _b) ((_a) > (_b) ? (_a) : (_b))
 
+#define REDUCT_UNUSED(_x) ((void)(_x))
+
 /**
  * @brief Reduct boolean type.
  * @enum reduct_bool_t
@@ -178,7 +180,7 @@ typedef enum
  * @param _type The type of the structure.
  * @param _member The name of the member.
  */
-#define REDUCT_CONTAINER_OF(_ptr, _type, _member) ((_type*)((char*)(_ptr) - (reduct_size_t) & ((_type*)0)->_member))
+#define REDUCT_CONTAINER_OF(_ptr, _type, _member) ((_type*)((char*)(_ptr) - offsetof(_type, _member)))
 
 /**
  * @brief Reduct handle type.

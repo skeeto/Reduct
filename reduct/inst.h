@@ -4,9 +4,9 @@
 #include "defs.h"
 
 /**
+ * @file inst.h
  * @brief Bytecode instruction format.
  * @defgroup inst Instruction Format
- * @file inst.h
  *
  * Instructions are 32-bit words
  * with the following formats:

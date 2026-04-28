@@ -8,9 +8,9 @@
 struct reduct;
 
 /**
+ * @file atom.h
  * @brief Atom representation and operations.
  * @defgroup atom Atoms
- * @file atom.h
  *
  * Atoms represent all strings within a Reduct expression, as such it also represents anything that a string can be,
  * including integers, floats and intrinsics.

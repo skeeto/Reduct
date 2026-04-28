@@ -4,9 +4,9 @@
 struct reduct_closure;
 
 /**
+ * @file eval.h
  * @brief Virtual machine evaluation.
  * @defgroup eval Evaluation
- * @file eval.h
  *
  * @{
  */

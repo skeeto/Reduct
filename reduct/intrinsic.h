@@ -10,9 +10,9 @@ struct reduct_item;
 struct reduct_expr;
 
 /**
+ * @file intrinsic.h
  * @brief Intrinsic management.
  * @defgroup intrinsic Intrinsics
- * @file intrinsic.h
  *
  * A intrinsic is an atom recognized by the bytecode compiler as a special form or built-in operator, resulting in it
  * emitting specific bytecode instructions for each intrinsic.

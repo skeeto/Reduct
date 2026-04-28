@@ -6,9 +6,9 @@
 #include "item.h"
 
 /**
+ * @file gc.h
  * @brief Garbage collection
  * @defgroup gc Garbage Collection
- * @file gc.h
  *
  * @todo The Garbage collector really needs to be optimized.
  *

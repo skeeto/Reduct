@@ -6,9 +6,9 @@
 struct reduct;
 
 /**
+ * @file native.h
  * @brief Native function registration.
  * @defgroup native Native Functions
- * @file native.h
  *
  * A "native" is a C function that can be called at runtime.
  *

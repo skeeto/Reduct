@@ -10,9 +10,9 @@
 #include "list.h"
 
 /**
+ * @file compile.h
  * @brief Bytecode compilation.
  * @defgroup compile Compilation
- * @file compile.h
  *
  * The compilation process converts S-expressions into register-based bytecode that can be executed by the Reduct
  * virtual machine.

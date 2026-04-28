@@ -7,9 +7,9 @@ struct reduct_item;
 #include "defs.h"
 
 /**
+ * @file list.h
  * @brief List management.
  * @defgroup list List
- * @file list.h
  *
  * A list is a persistent data structure implemented using a bit-mapped vector trie.
  *

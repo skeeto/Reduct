@@ -8,9 +8,9 @@
 #include "list.h"
 
 /**
+ * @file item.h
  * @brief Item management.
  * @defgroup item Item
- * @file item.h
  *
  * An item is a generic container for all data types and heap alloacted structures within Reduct.
  *

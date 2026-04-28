@@ -5,9 +5,9 @@
 #include "handle.h"
 
 /**
+ * @file parse.h
  * @brief Parser.
  * @defgroup parse Parse
- * @file parse.h
  *
  * @{
  */

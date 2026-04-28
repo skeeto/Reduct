@@ -9,9 +9,9 @@ struct reduct_atom;
 #include "inst.h"
 
 /**
+ * @file function.h
  * @brief Compiled function
  * @defgroup function Reduct function
- * @file function.h
  *
  * A reduct function is a sequence of instructions and an associated constant pool that can be executed by the Reduct
  * virtual machine.

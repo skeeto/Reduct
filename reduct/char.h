@@ -2,9 +2,9 @@
 #define REDUCT_CHAR_H 1
 
 /**
+ * @file char.h
  * @brief Character handling.
  * @defgroup char Characters
- * @file char.h
  *
  * Lookup tables are used to reduce branching and improve performance when parsing and processing characters.
  *

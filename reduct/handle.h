@@ -7,9 +7,9 @@ struct reduct;
 #include "item.h"
 
 /**
+ * @file handle.h
  * @brief Handle management.
  * @defgroup handle Handle
- * @file handle.h
  *
  * A handle is a lightweight reference to a Reduct item, with the ability to cache various flags from its referenced
  * item or the integer/float value of an atom using Tagged Pointers (NaN Boxing).

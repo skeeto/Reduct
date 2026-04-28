@@ -7,9 +7,9 @@ struct reduct;
 struct reduct_item;
 
 /**
+ * @file error.h
  * @brief Error handling and reporting.
  * @defgroup error Error
- * @file error.h
  *
  * @{
  */

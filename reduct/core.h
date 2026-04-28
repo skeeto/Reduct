@@ -9,9 +9,9 @@ struct reduct_item;
 #include "list.h"
 
 /**
+ * @file core.h
  * @brief Core definitions and structures.
  * @defgroup core
- * @file core.h
  *
  * @{
  */

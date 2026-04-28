@@ -7,9 +7,9 @@
 struct reduct;
 
 /**
+ * @file standard.h
  * @brief Built-in library registration and operations.
  * @defgroup stdlib Stdlib
- * @file stdlib.h
  *
  * Built-in libraries provide a set of pre-defined native functions for use in Reduct expressions.
  *

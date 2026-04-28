@@ -5,9 +5,9 @@
 #include "handle.h"
 
 /**
+ * @file stringify.h
  * @brief Stringification.
  * @defgroup stringify Stringification
- * @file stringify.h
  *
  * @{
  */

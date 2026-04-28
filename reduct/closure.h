@@ -7,9 +7,9 @@ struct reduct_item;
 #include "function.h"
 
 /**
- * @brief Closure management.
- * @defgroup closure Reduct closure
  * @file closure.h
+ * @brief Closure management.
+ * @defgroup closure Closure
  *
  * A closure is a function instance that has captured variables from its enclosing scope.
  *

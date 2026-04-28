@@ -8,6 +8,7 @@
 #endif
 
 #ifndef REDUCT_FREESTANDING
+#define _CRT_SECURE_NO_WARNINGS // Make windows stop being annoying
 #include <assert.h>
 #include <math.h>
 #include <setjmp.h>

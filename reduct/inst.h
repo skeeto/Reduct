@@ -4,7 +4,7 @@
 #include "defs.h"
 
 /**
- * @brief Reduct bytecode instruction format.
+ * @brief Bytecode instruction format.
  * @defgroup inst Instruction Format
  * @file inst.h
  *
@@ -30,7 +30,7 @@
  */
 
 /**
- * @brief Reduct opcode mode enumeration.
+ * @brief Opcode mode enumeration.
  * @enum reduct_mode_t
  */
 typedef enum
@@ -42,7 +42,7 @@ typedef enum
 } reduct_mode_t;
 
 /**
- * @brief Reduct opcode enumeration.
+ * @brief Opcode enumeration.
  * @enum reduct_opcode_t
  */
 typedef enum
@@ -82,24 +82,24 @@ typedef enum
 } reduct_opcode_t;
 
 /**
- * @brief Reduct register type.
+ * @brief Register type.
  */
 typedef reduct_uint16_t reduct_reg_t;
 
 /**
  * @brief Invalid register value.
  */
-#define REDUCT_REG_INVALID ((reduct_reg_t)-1)
+#define REDUCT_REG_INVALID ((reduct_reg_t) - 1)
 
 /**
- * @brief Reduct instruction type.
+ * @brief Instruction type.
  */
 typedef reduct_uint32_t reduct_inst_t;
 
-#define REDUCT_INST_WIDTH_OPCODE 6ULL                                    ///< Opcode width in bits.
-#define REDUCT_INST_WIDTH_A 8ULL                                         ///< A operand width in bits.
-#define REDUCT_INST_WIDTH_B 8ULL                                         ///< B operand width in bits.
-#define REDUCT_INST_WIDTH_C 10ULL                                        ///< C operand width in bits.
+#define REDUCT_INST_WIDTH_OPCODE 6ULL                                     ///< Opcode width in bits.
+#define REDUCT_INST_WIDTH_A 8ULL                                          ///< A operand width in bits.
+#define REDUCT_INST_WIDTH_B 8ULL                                          ///< B operand width in bits.
+#define REDUCT_INST_WIDTH_C 10ULL                                         ///< C operand width in bits.
 #define REDUCT_INST_WIDTH_SBX (REDUCT_INST_WIDTH_B + REDUCT_INST_WIDTH_C) ///< SBx operand width in bits.
 
 /**
@@ -111,7 +111,7 @@ typedef reduct_uint32_t reduct_inst_t;
  */
 #define REDUCT_CONSTANT_MAX (1ULL << REDUCT_INST_WIDTH_C)
 
-#define REDUCT_INST_POS_OPCODE 0ULL                                          ///< Opcode position in bits.
+#define REDUCT_INST_POS_OPCODE 0ULL                                           ///< Opcode position in bits.
 #define REDUCT_INST_POS_A (REDUCT_INST_POS_OPCODE + REDUCT_INST_WIDTH_OPCODE) ///< A operand position in bits.
 #define REDUCT_INST_POS_B (REDUCT_INST_POS_A + REDUCT_INST_WIDTH_A)           ///< B operand position in bits.
 #define REDUCT_INST_POS_C (REDUCT_INST_POS_B + REDUCT_INST_WIDTH_B)           ///< C operand position in bits.
@@ -160,7 +160,8 @@ typedef reduct_uint32_t reduct_inst_t;
  *
  * @param _inst Instruction.
  */
-#define REDUCT_INST_GET_OP_BASE(_inst) (((_inst) >> REDUCT_INST_POS_OPCODE) & (REDUCT_INST_MASK_OPCODE & ~REDUCT_MODE_CONST))
+#define REDUCT_INST_GET_OP_BASE(_inst) \
+    (((_inst) >> REDUCT_INST_POS_OPCODE) & (REDUCT_INST_MASK_OPCODE & ~REDUCT_MODE_CONST))
 
 /**
  * @brief Get the A operand from an instruction.

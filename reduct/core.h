@@ -9,7 +9,7 @@ struct reduct_item;
 #include "list.h"
 
 /**
- * @brief Core Reduct definitions and structures.
+ * @brief Core definitions and structures.
  * @defgroup core
  * @file core.h
  *
@@ -22,7 +22,7 @@ struct reduct_item;
 #define REDUCT_GC_THRESHOLD_INITIAL 128 ///< Initial blocks allocated threshold for garbage collection.
 
 /**
- * @brief Reduct input flags.
+ * @brief Input flags.
  */
 typedef enum
 {
@@ -31,7 +31,7 @@ typedef enum
 } reduct_input_flags_t;
 
 /**
- * @brief Reduct input structure.
+ * @brief Input structure.
  * @struct reduct_input_t
  */
 typedef struct reduct_input
@@ -44,7 +44,7 @@ typedef struct reduct_input
 } reduct_input_t;
 
 /**
- * @brief Reduct constant structure.
+ * @brief Constant structure.
  * @struct reduct_constant_t
  */
 typedef struct reduct_constant
@@ -54,7 +54,7 @@ typedef struct reduct_constant
 } reduct_constant_t;
 
 /**
- * @brief Reduct state structure.
+ * @brief State structure.
  * @struct reduct_t
  */
 typedef struct reduct
@@ -126,8 +126,8 @@ REDUCT_API void reduct_constant_register(reduct_t* reduct, const char* name, str
  * @param flags Input flags.
  * @return A pointer to the newly created input structure.
  */
-REDUCT_API reduct_input_t* reduct_input_new(reduct_t* reduct, const char* buffer, reduct_size_t length, const char* path,
-    reduct_input_flags_t flags);
+REDUCT_API reduct_input_t* reduct_input_new(reduct_t* reduct, const char* buffer, reduct_size_t length,
+    const char* path, reduct_input_flags_t flags);
 
 /** @} */
 

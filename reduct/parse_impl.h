@@ -31,7 +31,7 @@ typedef enum
     REDUCT_PARSE_PRECEDENCE_BITWISE,
     REDUCT_PARSE_PRECEDENCE_ADD_SUB,
     REDUCT_PARSE_PRECEDENCE_MUL_DIV,
-    REDUCT_PARSE_PRECEDENCE_UNARY,   
+    REDUCT_PARSE_PRECEDENCE_UNARY,
     REDUCT_PARSE_PRECEDENCE_MAX,
 } reduct_parse_precedence_t;
 
@@ -75,13 +75,11 @@ static reduct_parse_precedence_t reduct_parse_get_precedence(reduct_handle_t han
     {
         return REDUCT_PARSE_PRECEDENCE_SHIFT;
     }
-    if (reduct_atom_is_equal(atom, "&", 1) || reduct_atom_is_equal(atom, "|", 1) ||
-        reduct_atom_is_equal(atom, "^", 1))
+    if (reduct_atom_is_equal(atom, "&", 1) || reduct_atom_is_equal(atom, "|", 1) || reduct_atom_is_equal(atom, "^", 1))
     {
         return REDUCT_PARSE_PRECEDENCE_BITWISE;
     }
-    if (reduct_atom_is_equal(atom, "*", 1) || reduct_atom_is_equal(atom, "/", 1) ||
-        reduct_atom_is_equal(atom, "%", 1))
+    if (reduct_atom_is_equal(atom, "*", 1) || reduct_atom_is_equal(atom, "/", 1) || reduct_atom_is_equal(atom, "%", 1))
     {
         return REDUCT_PARSE_PRECEDENCE_MUL_DIV;
     }
@@ -93,7 +91,8 @@ static reduct_parse_precedence_t reduct_parse_get_precedence(reduct_handle_t han
     return REDUCT_PARSE_PRECEDENCE_NONE;
 }
 
-static reduct_handle_t reduct_parse_infix_transform_recursive(reduct_t* reduct, reduct_list_t* list, reduct_size_t* pos, reduct_parse_precedence_t minPrecedence)
+static reduct_handle_t reduct_parse_infix_transform_recursive(reduct_t* reduct, reduct_list_t* list, reduct_size_t* pos,
+    reduct_parse_precedence_t minPrecedence)
 {
     if (*pos >= list->length)
     {
@@ -242,8 +241,8 @@ static void reduct_parse_unquoted_atom(reduct_t* reduct, reduct_parse_ctx_t* ctx
     REDUCT_ASSERT(ctx != REDUCT_NULL);
 
     const char* start = ctx->ptr;
-    while (ctx->ptr < ctx->input->end && !REDUCT_CHAR_IS_WHITESPACE(*ctx->ptr) && 
-           *ctx->ptr != '(' && *ctx->ptr != ')' && *ctx->ptr != '{' && *ctx->ptr != '}')
+    while (ctx->ptr < ctx->input->end && !REDUCT_CHAR_IS_WHITESPACE(*ctx->ptr) && *ctx->ptr != '(' &&
+        *ctx->ptr != ')' && *ctx->ptr != '{' && *ctx->ptr != '}')
     {
         ctx->ptr++;
     }
@@ -331,8 +330,8 @@ REDUCT_API reduct_handle_t reduct_parse_input(reduct_t* reduct, reduct_input_t* 
             reduct_bool_t childIsInfix = ctx.isInfix[ctx.current];
 
             ctx.current--;
-            ctx.ptr++;            
-            
+            ctx.ptr++;
+
             if (childIsInfix)
             {
                 reduct_handle_t transformed = reduct_parse_infix_transform(reduct, child);

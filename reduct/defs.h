@@ -125,7 +125,7 @@ typedef double reduct_float_t;
 #define REDUCT_UNUSED(_x) ((void)(_x))
 
 /**
- * @brief Reduct boolean type.
+ * @brief Boolean type.
  * @enum reduct_bool_t
  *
  * Equivalent to bool.
@@ -137,17 +137,17 @@ typedef enum
 } reduct_bool_t;
 
 /**
- * @brief Reduct PI constant.
+ * @brief PI constant.
  */
 #define REDUCT_PI 3.14159265358979323846
 
 /**
- * @brief Reduct E constant.
+ * @brief E constant.
  */
 #define REDUCT_E 2.7182818284590452354
 
 /**
- * @brief Reduct INFINITY constant.
+ * @brief INFINITY constant.
  */
 #define REDUCT_INF \
     (((union { \
@@ -157,7 +157,7 @@ typedef enum
             .f)
 
 /**
- * @brief Reduct NAN constant.
+ * @brief NAN constant.
  */
 #define REDUCT_NAN \
     (((union { \
@@ -172,7 +172,7 @@ typedef enum
 #define REDUCT_PATH_MAX 512
 
 /**
- * @brief Reduct container of macro.
+ * @brief Container of macro.
  *
  * Used to get the pointer to a structure from a pointer to one of its members.
  *
@@ -183,7 +183,7 @@ typedef enum
 #define REDUCT_CONTAINER_OF(_ptr, _type, _member) ((_type*)((char*)(_ptr) - offsetof(_type, _member)))
 
 /**
- * @brief Reduct handle type.
+ * @brief Handle type.
  */
 typedef reduct_uint64_t reduct_handle_t;
 
@@ -191,8 +191,9 @@ typedef reduct_uint64_t reduct_handle_t;
 
 #define REDUCT_SCRATCH_BUFFER(_name, _size) \
     char _name##Stack[REDUCT_STACK_BUFFER_SIZE]; \
-    char* _name = ((reduct_size_t)(_size) + 1 <= REDUCT_STACK_BUFFER_SIZE) ? _name##Stack \
-                                                                       : (char*)REDUCT_MALLOC((reduct_size_t)(_size) + 1); \
+    char* _name = ((reduct_size_t)(_size) + 1 <= REDUCT_STACK_BUFFER_SIZE) \
+        ? _name##Stack \
+        : (char*)REDUCT_MALLOC((reduct_size_t)(_size) + 1); \
     if (_name == REDUCT_NULL) \
     { \
         REDUCT_ERROR_INTERNAL(reduct, "out of memory"); \

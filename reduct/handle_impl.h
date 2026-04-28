@@ -10,7 +10,8 @@
 #include "item.h"
 #include "stringify.h"
 
-REDUCT_API void reduct_handle_get_string_params(reduct_t* reduct, reduct_handle_t* handle, char** outStr, reduct_size_t* outLen)
+REDUCT_API void reduct_handle_get_string_params(reduct_t* reduct, reduct_handle_t* handle, char** outStr,
+    reduct_size_t* outLen)
 {
     reduct_handle_ensure_item(reduct, handle);
     reduct_item_t* item = REDUCT_HANDLE_TO_ITEM(handle);
@@ -50,7 +51,8 @@ REDUCT_API reduct_item_t* reduct_handle_item(reduct_t* reduct, reduct_handle_t* 
     return REDUCT_HANDLE_TO_ITEM(handle);
 }
 
-REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a, reduct_handle_t* b, reduct_promotion_t* out)
+REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a, reduct_handle_t* b,
+    reduct_promotion_t* out)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(a != REDUCT_NULL);
@@ -79,8 +81,7 @@ REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a,
     reduct_item_t* itemA = REDUCT_HANDLE_TO_ITEM(a);
     reduct_item_t* itemB = REDUCT_HANDLE_TO_ITEM(b);
 
-    if ((itemA->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED) ||
-        (itemB->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED))
+    if ((itemA->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED) || (itemB->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED))
     {
         out->type = REDUCT_PROMOTION_TYPE_FLOAT;
         if (itemA->flags & REDUCT_ITEM_FLAG_FLOAT_SHAPED)
@@ -101,8 +102,7 @@ REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a,
             out->b.floatVal = (reduct_float_t)itemB->atom.integerValue;
         }
     }
-    else if ((itemA->flags & REDUCT_ITEM_FLAG_INT_SHAPED) &&
-        (itemB->flags & REDUCT_ITEM_FLAG_INT_SHAPED))
+    else if ((itemA->flags & REDUCT_ITEM_FLAG_INT_SHAPED) && (itemB->flags & REDUCT_ITEM_FLAG_INT_SHAPED))
     {
         out->type = REDUCT_PROMOTION_TYPE_INT;
         out->a.intVal = itemA->atom.integerValue;
@@ -209,8 +209,8 @@ static inline void reduct_handle_unpack(reduct_handle_t* handle, reduct_cmp_val_
         out->num.i = REDUCT_HANDLE_TO_INT(handle);
         out->item = REDUCT_NULL;
         return;
-    } 
-    
+    }
+
     if (REDUCT_HANDLE_IS_FLOAT(handle))
     {
         out->group = 0;
@@ -226,7 +226,7 @@ static inline void reduct_handle_unpack(reduct_handle_t* handle, reduct_cmp_val_
         out->group = 2;
         return;
     }
-    
+
     if (out->item != REDUCT_NULL && (REDUCT_HANDLE_GET_FLAGS(handle) & REDUCT_ITEM_FLAG_FLOAT_SHAPED))
     {
         out->group = 0;

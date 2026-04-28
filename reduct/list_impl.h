@@ -71,7 +71,8 @@ static reduct_list_node_t* reduct_list_assoc_internal(reduct_t* reduct, reduct_u
     return newNode;
 }
 
-REDUCT_API reduct_list_t* reduct_list_assoc(struct reduct* reduct, reduct_list_t* list, reduct_size_t index, reduct_handle_t val)
+REDUCT_API reduct_list_t* reduct_list_assoc(struct reduct* reduct, reduct_list_t* list, reduct_size_t index,
+    reduct_handle_t val)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(list != REDUCT_NULL);
@@ -127,7 +128,8 @@ REDUCT_API reduct_list_t* reduct_list_dissoc(struct reduct* reduct, reduct_list_
     return newList;
 }
 
-REDUCT_API reduct_list_t* reduct_list_slice(struct reduct* reduct, reduct_list_t* list, reduct_size_t start, reduct_size_t end)
+REDUCT_API reduct_list_t* reduct_list_slice(struct reduct* reduct, reduct_list_t* list, reduct_size_t start,
+    reduct_size_t end)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(list != REDUCT_NULL);
@@ -174,8 +176,8 @@ REDUCT_API struct reduct_item* reduct_list_nth_item(struct reduct* reduct, reduc
     return REDUCT_HANDLE_TO_ITEM(&handle);
 }
 
-static reduct_list_node_t* reduct_push_tail(reduct_t* reduct, reduct_uint32_t shift, reduct_size_t index, reduct_list_node_t* parent,
-    reduct_list_node_t* tailNode)
+static reduct_list_node_t* reduct_push_tail(reduct_t* reduct, reduct_uint32_t shift, reduct_size_t index,
+    reduct_list_node_t* parent, reduct_list_node_t* tailNode)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(tailNode != REDUCT_NULL);
@@ -185,7 +187,8 @@ static reduct_list_node_t* reduct_push_tail(reduct_t* reduct, reduct_uint32_t sh
         return tailNode;
     }
 
-    reduct_list_node_t* newNode = parent != REDUCT_NULL ? reduct_list_node_copy(reduct, parent) : reduct_list_node_new(reduct);
+    reduct_list_node_t* newNode =
+        parent != REDUCT_NULL ? reduct_list_node_copy(reduct, parent) : reduct_list_node_new(reduct);
     reduct_uint32_t subIdx = (index >> shift) & REDUCT_LIST_MASK;
     newNode->children[subIdx] =
         reduct_push_tail(reduct, shift - REDUCT_LIST_BITS, index, newNode->children[subIdx], tailNode);

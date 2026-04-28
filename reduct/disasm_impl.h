@@ -225,7 +225,8 @@ static void reduct_disasm_internal(reduct_t* reduct, reduct_function_t* function
                 reduct_item_t* item = slot->item;
                 if (item->type == REDUCT_ITEM_TYPE_ATOM)
                 {
-                    REDUCT_FPRINTF(out, "[K%03u] \"%.*s\"\n", (unsigned int)i, (int)item->atom.length, item->atom.string);
+                    REDUCT_FPRINTF(out, "[K%03u] \"%.*s\"\n", (unsigned int)i, (int)item->atom.length,
+                        item->atom.string);
                 }
                 else if (item->type == REDUCT_ITEM_TYPE_LIST)
                 {

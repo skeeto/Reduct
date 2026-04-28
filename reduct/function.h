@@ -9,7 +9,7 @@ struct reduct_atom;
 #include "inst.h"
 
 /**
- * @brief Reduct compiled function
+ * @brief Compiled function
  * @defgroup function Reduct function
  * @file function.h
  *
@@ -25,7 +25,7 @@ struct reduct_atom;
  */
 
 /**
- * @brief Reduct constant slot type.
+ * @brief Constant slot type.
  * @typedef reduct_const_slot_type_t
  */
 typedef enum
@@ -36,7 +36,7 @@ typedef enum
 } reduct_const_slot_type_t;
 
 /**
- * @brief Reduct constant slot.
+ * @brief Constant slot.
  * @struct reduct_const_slot_t
  */
 typedef struct reduct_const_slot
@@ -61,16 +61,17 @@ typedef struct reduct_const_slot
  *
  * @param _capture The name of the variable to be captured.
  */
-#define REDUCT_CONST_SLOT_CAPTURE(_capture) ((reduct_const_slot_t){.type = REDUCT_CONST_SLOT_CAPTURE, .capture = (_capture)})
+#define REDUCT_CONST_SLOT_CAPTURE(_capture) \
+    ((reduct_const_slot_t){.type = REDUCT_CONST_SLOT_CAPTURE, .capture = (_capture)})
 
 /**
- * @brief Reduct constant index type.
+ * @brief Constant index type.
  * @typedef reduct_const_t
  */
 typedef reduct_uint16_t reduct_const_t;
 
 /**
- * @brief Reduct compiled function structure.
+ * @brief Compiled function structure.
  * @struct reduct_function_t
  */
 typedef struct reduct_function
@@ -145,7 +146,8 @@ static inline void reduct_function_emit(struct reduct* reduct, reduct_function_t
  * @param slot The constant slot to add or lookup.
  * @return The index of the constant in the constant template.
  */
-REDUCT_API reduct_const_t reduct_function_lookup_constant(struct reduct* reduct, reduct_function_t* func, reduct_const_slot_t* slot);
+REDUCT_API reduct_const_t reduct_function_lookup_constant(struct reduct* reduct, reduct_function_t* func,
+    reduct_const_slot_t* slot);
 
 /** @} */
 

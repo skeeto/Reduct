@@ -6,7 +6,7 @@
 struct reduct;
 
 /**
- * @brief Reduct native function registration.
+ * @brief Native function registration.
  * @defgroup native Native Functions
  * @file native.h
  *

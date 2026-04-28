@@ -120,8 +120,8 @@ REDUCT_API void reduct_constant_register(reduct_t* reduct, const char* name, red
     REDUCT_GC_RETAIN_ITEM(reduct, item);
 }
 
-REDUCT_API reduct_input_t* reduct_input_new(reduct_t* reduct, const char* buffer, reduct_size_t length, const char* path,
-    reduct_input_flags_t flags)
+REDUCT_API reduct_input_t* reduct_input_new(reduct_t* reduct, const char* buffer, reduct_size_t length,
+    const char* path, reduct_input_flags_t flags)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(buffer != REDUCT_NULL);

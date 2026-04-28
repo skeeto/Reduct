@@ -7,7 +7,7 @@ struct reduct;
 struct reduct_item;
 
 /**
- * @brief Reduct error handling and reporting.
+ * @brief Error handling and reporting.
  * @defgroup error Error
  * @file error.h
  *
@@ -17,7 +17,7 @@ struct reduct_item;
 #define REDUCT_ERROR_MAX_LEN 512 ///< Maximum length of an error string.
 
 /**
- * @brief Reduct error type enumeration.
+ * @brief Error type enumeration.
  * @enum reduct_error_type_t
  */
 typedef enum reduct_error_type
@@ -30,18 +30,18 @@ typedef enum reduct_error_type
 } reduct_error_type_t;
 
 /**
- * @brief Reduct error structure.
+ * @brief Error structure.
  * @struct reduct_error_t
  */
 typedef struct
 {
-    const char* input;        ///< The input buffer.
+    const char* input;          ///< The input buffer.
     reduct_size_t inputLength;  ///< The total length of the input buffer.
-    const char* path;         ///< THe path to the file that caused the error.
+    const char* path;           ///< THe path to the file that caused the error.
     reduct_size_t regionLength; ///< The length of the region that caused the error.
     reduct_size_t index;        ///< The index of the region in the input buffer that caused the error.
     reduct_jmp_buf_t jmp;
-    reduct_error_type_t type;   ///< The type of the error.
+    reduct_error_type_t type; ///< The type of the error.
     char message[REDUCT_ERROR_MAX_LEN];
 } reduct_error_t;
 
@@ -231,10 +231,12 @@ REDUCT_API REDUCT_NORETURN void reduct_error_throw_runtime(struct reduct* reduct
 /**
  * @brief Check the arity of a native function call.
  */
-REDUCT_API void reduct_error_check_arity(struct reduct* reduct, reduct_size_t argc, reduct_size_t expected, const char* name);
-REDUCT_API void reduct_error_check_min_arity(struct reduct* reduct, reduct_size_t argc, reduct_size_t min, const char* name);
-REDUCT_API void reduct_error_check_arity_range(struct reduct* reduct, reduct_size_t argc, reduct_size_t min, reduct_size_t max,
+REDUCT_API void reduct_error_check_arity(struct reduct* reduct, reduct_size_t argc, reduct_size_t expected,
     const char* name);
+REDUCT_API void reduct_error_check_min_arity(struct reduct* reduct, reduct_size_t argc, reduct_size_t min,
+    const char* name);
+REDUCT_API void reduct_error_check_arity_range(struct reduct* reduct, reduct_size_t argc, reduct_size_t min,
+    reduct_size_t max, const char* name);
 
 /** @} */
 

@@ -7,7 +7,7 @@ struct reduct_item;
 #include "function.h"
 
 /**
- * @brief Reduct closure
+ * @brief Closure management.
  * @defgroup closure Reduct closure
  * @file closure.h
  *
@@ -19,12 +19,12 @@ struct reduct_item;
 #define REDUCT_CLOSURE_SMALL_MAX 4 ///< The maximum number of small constants.
 
 /**
- * @brief Reduct closure structure.
+ * @brief Closure structure.
  * @struct reduct_closure_t
  */
 typedef struct reduct_closure
 {
-    reduct_function_t* function; ///< Pointer to the prototype function item.            ///< Pointer to upvalues array.
+    reduct_function_t* function; ///< Pointer to the prototype function item.
     reduct_handle_t* constants;  ///< The array of constant slots forming the constant template.
     reduct_handle_t smallConstants[REDUCT_CLOSURE_SMALL_MAX];
 } reduct_closure_t;

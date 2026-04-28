@@ -2,7 +2,7 @@
 #define REDUCT_CHAR_H 1
 
 /**
- * @brief Reduct character handling.
+ * @brief Character handling.
  * @defgroup char Characters
  * @file char.h
  *
@@ -33,11 +33,11 @@ typedef enum reduct_char_flags
 typedef struct reduct_char_info
 {
     reduct_char_flags_t flags; ///< Character classification flags.
-    char upper;              ///< Uppercase equivalent.
-    char lower;              ///< Lowercase equivalent.
-    char decodeEscape;       ///< The char to decode to when escaped.
-    char encodeEscape;       ///< The char to use when encoding an escape.
-    unsigned char integer;   ///< Integer value.
+    char upper;                ///< Uppercase equivalent.
+    char lower;                ///< Lowercase equivalent.
+    char decodeEscape;         ///< The char to decode to when escaped.
+    char encodeEscape;         ///< The char to use when encoding an escape.
+    unsigned char integer;     ///< Integer value.
 } reduct_char_info_t;
 
 /**

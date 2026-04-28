@@ -4,7 +4,7 @@
 struct reduct_closure;
 
 /**
- * @brief Reduct virtual machine evaluation.
+ * @brief Virtual machine evaluation.
  * @defgroup eval Evaluation
  * @file eval.h
  *
@@ -22,7 +22,7 @@ struct reduct_closure;
 #define REDUCT_EVAL_FRAMES_GROWTH_FACTOR 2 ///< The growth factor of the frames array.
 
 /**
- * @brief Reduct evaluation frame structure.
+ * @brief Evaluation frame structure.
  * @struct reduct_eval_frame_t
  */
 typedef struct reduct_eval_frame
@@ -34,7 +34,7 @@ typedef struct reduct_eval_frame
 } reduct_eval_frame_t;
 
 /**
- * @brief Reduct evaluation state structure.
+ * @brief Evaluation state structure.
  * @struct reduct_eval_state_t
  */
 typedef struct reduct_eval_state
@@ -91,7 +91,8 @@ REDUCT_API reduct_handle_t reduct_eval_string(reduct_t* reduct, const char* str,
  * @param argv Pointer to the arguments array.
  * @return The result of the call.
  */
-REDUCT_API reduct_handle_t reduct_eval_call(reduct_t* reduct, reduct_handle_t callable, reduct_size_t argc, reduct_handle_t* argv);
+REDUCT_API reduct_handle_t reduct_eval_call(reduct_t* reduct, reduct_handle_t callable, reduct_size_t argc,
+    reduct_handle_t* argv);
 
 /** @} */
 

@@ -18,7 +18,7 @@ REDUCT_API reduct_function_t* reduct_compile(reduct_t* reduct, reduct_handle_t* 
     reduct_function_t* func = reduct_function_new(reduct);
     reduct_item_t* funcItem = REDUCT_CONTAINER_OF(func, reduct_item_t, function);
     REDUCT_GC_RETAIN_ITEM(reduct, funcItem);
-    
+
     reduct_compiler_t compiler;
     reduct_compiler_init(&compiler, reduct, func, REDUCT_NULL);
 
@@ -154,8 +154,8 @@ static inline void reduct_expr_build_atom(reduct_compiler_t* compiler, reduct_it
     REDUCT_ASSERT(out != REDUCT_NULL);
 
     if (atom->flags &
-        (REDUCT_ITEM_FLAG_QUOTED | REDUCT_ITEM_FLAG_NATIVE | REDUCT_ITEM_FLAG_INTRINSIC | REDUCT_ITEM_FLAG_FLOAT_SHAPED |
-            REDUCT_ITEM_FLAG_INT_SHAPED))
+        (REDUCT_ITEM_FLAG_QUOTED | REDUCT_ITEM_FLAG_NATIVE | REDUCT_ITEM_FLAG_INTRINSIC |
+            REDUCT_ITEM_FLAG_FLOAT_SHAPED | REDUCT_ITEM_FLAG_INT_SHAPED))
     {
         *out = REDUCT_EXPR_CONST_ITEM(compiler, atom);
         return;
@@ -206,7 +206,8 @@ static inline void reduct_expr_build_list(reduct_compiler_t* compiler, reduct_it
     reduct_item_t* head = reduct_list_nth_item(compiler->reduct, &list->list, 0);
     if ((head->flags & REDUCT_ITEM_FLAG_QUOTED) ||
         (head->type == REDUCT_ITEM_TYPE_ATOM &&
-            (head->flags & (REDUCT_ITEM_FLAG_INT_SHAPED | REDUCT_ITEM_FLAG_FLOAT_SHAPED))) || head->type == REDUCT_ITEM_TYPE_LIST)
+            (head->flags & (REDUCT_ITEM_FLAG_INT_SHAPED | REDUCT_ITEM_FLAG_FLOAT_SHAPED))) ||
+        head->type == REDUCT_ITEM_TYPE_LIST)
     {
         reduct_reg_t target = reduct_expr_get_reg(compiler, out);
         reduct_compile_list(compiler, target);
@@ -358,11 +359,11 @@ REDUCT_API reduct_local_t* reduct_local_add_arg(reduct_compiler_t* compiler, red
     return &compiler->locals[compiler->localCount++];
 }
 
-
 REDUCT_API void reduct_local_pop(reduct_compiler_t* compiler, reduct_uint16_t toCount, reduct_expr_t* result)
 {
     REDUCT_ASSERT(compiler != REDUCT_NULL);
-    reduct_reg_t resultReg = (result != REDUCT_NULL && result->mode == REDUCT_MODE_REG) ? result->reg : REDUCT_REG_INVALID;
+    reduct_reg_t resultReg =
+        (result != REDUCT_NULL && result->mode == REDUCT_MODE_REG) ? result->reg : REDUCT_REG_INVALID;
 
     for (reduct_uint32_t i = compiler->localCount; i > (reduct_uint32_t)toCount; i--)
     {

@@ -4,7 +4,8 @@
 
 #include "stringify.h"
 
-static inline reduct_size_t reduct_stringify_internal(reduct_t* reduct, reduct_handle_t* handle, char* buffer, reduct_size_t size)
+static inline reduct_size_t reduct_stringify_internal(reduct_t* reduct, reduct_handle_t* handle, char* buffer,
+    reduct_size_t size)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(buffer != REDUCT_NULL || size == 0);
@@ -64,13 +65,14 @@ static inline reduct_size_t reduct_stringify_internal(reduct_t* reduct, reduct_h
 
             if (_iter.index < item->length)
             {
-                res = REDUCT_SNPRINTF(size > written ? buffer + written : REDUCT_NULL, size > written ? size - written : 0,
-                    " ");
+                res = REDUCT_SNPRINTF(size > written ? buffer + written : REDUCT_NULL,
+                    size > written ? size - written : 0, " ");
                 written += res;
             }
         }
 
-        res = REDUCT_SNPRINTF(size > written ? buffer + written : REDUCT_NULL, size > written ? size - written : 0, ")");
+        res =
+            REDUCT_SNPRINTF(size > written ? buffer + written : REDUCT_NULL, size > written ? size - written : 0, ")");
         written += res;
 
         return written;

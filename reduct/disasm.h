@@ -5,7 +5,7 @@
 #include "core.h"
 
 /**
- * @brief Reduct bytecode disassembly.
+ * @brief Bytecode disassembly.
  * @defgroup disasm Disassembly
  * @file disasm.h
  *

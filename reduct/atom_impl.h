@@ -139,7 +139,8 @@ REDUCT_API reduct_atom_t* reduct_atom_lookup_float(reduct_t* reduct, reduct_floa
     return atom;
 }
 
-REDUCT_API reduct_atom_t* reduct_atom_lookup(reduct_t* reduct, const char* str, reduct_size_t len, reduct_atom_lookup_flags_t flags)
+REDUCT_API reduct_atom_t* reduct_atom_lookup(reduct_t* reduct, const char* str, reduct_size_t len,
+    reduct_atom_lookup_flags_t flags)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(str != REDUCT_NULL);

@@ -10,18 +10,18 @@
 #include "list.h"
 
 /**
- * @brief Reduct bytecode compilation.
+ * @brief Bytecode compilation.
  * @defgroup compile Compilation
  * @file compile.h
  *
- * The compilation process converts S-expressions into register-based bytecode that can be executed by the Reduct virtual
- * machine.
+ * The compilation process converts S-expressions into register-based bytecode that can be executed by the Reduct
+ * virtual machine.
  *
  * @{
  */
 
 /**
- * @brief Reduct expression descriptor structure.
+ * @brief Expression descriptor structure.
  * @struct reduct_expr_t
  */
 typedef struct reduct_expr
@@ -35,7 +35,7 @@ typedef struct reduct_expr
 } reduct_expr_t;
 
 /**
- * @brief Reduct local structure.
+ * @brief Local structure.
  * @struct reduct_local_t
  */
 typedef struct reduct_local
@@ -45,15 +45,15 @@ typedef struct reduct_local
 } reduct_local_t;
 
 /**
- * @brief Reduct compiler structure.
+ * @brief Compiler structure.
  * @struct reduct_compiler_t
  */
 typedef struct reduct_compiler
 {
-    struct reduct_compiler* enclosing;                ///< The enclosing compiler context, or `REDUCT_NULL`.
+    struct reduct_compiler* enclosing;                  ///< The enclosing compiler context, or `REDUCT_NULL`.
     reduct_t* reduct;                                   ///< The Reduct structure.
-    reduct_function_t* function;                      ///< The function being compiled.
-    reduct_uint16_t localCount;                       ///< The amount of local variables.
+    reduct_function_t* function;                        ///< The function being compiled.
+    reduct_uint16_t localCount;                         ///< The amount of local variables.
     reduct_uint64_t regAlloc[REDUCT_REGISTER_MAX / 64]; ///< Bitmask of allocated registers.
     reduct_uint64_t regLocal[REDUCT_REGISTER_MAX / 64]; ///< Bitmask of registers used by locals.
     reduct_local_t locals[REDUCT_REGISTER_MAX];         ///< The local variables.
@@ -216,7 +216,8 @@ REDUCT_API void reduct_reg_free_range(reduct_compiler_t* compiler, reduct_reg_t 
  */
 #define REDUCT_EXPR_CONST_ATOM(_compiler, _atom) \
     REDUCT_EXPR_CONST(reduct_function_lookup_constant((_compiler)->reduct, (_compiler)->function, \
-        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, .item = REDUCT_CONTAINER_OF(_atom, reduct_item_t, atom)}))
+        &(reduct_const_slot_t){.type = REDUCT_CONST_SLOT_ITEM, \
+            .item = REDUCT_CONTAINER_OF(_atom, reduct_item_t, atom)}))
 
 /**
  * @brief Create a `REDUCT_MODE_TARGET` mode expression.
@@ -258,7 +259,8 @@ REDUCT_API void reduct_reg_free_range(reduct_compiler_t* compiler, reduct_reg_t 
  * @param _compiler The compiler context.
  * @param _val The integer value.
  */
-#define REDUCT_EXPR_INT(_compiler, _val) REDUCT_EXPR_CONST_ATOM(_compiler, reduct_atom_lookup_int((_compiler)->reduct, (_val)))
+#define REDUCT_EXPR_INT(_compiler, _val) \
+    REDUCT_EXPR_CONST_ATOM(_compiler, reduct_atom_lookup_int((_compiler)->reduct, (_val)))
 
 /**
  * @brief Get the target register index from an expression, or -1 if no target is specified.
@@ -272,7 +274,8 @@ REDUCT_API void reduct_reg_free_range(reduct_compiler_t* compiler, reduct_reg_t 
  * @param _compiler The compiler context.
  * @param _val The float value.
  */
-#define REDUCT_EXPR_FLOAT(_compiler, _val) REDUCT_EXPR_CONST_ATOM(_compiler, reduct_atom_lookup_float((_compiler)->reduct, (_val)))
+#define REDUCT_EXPR_FLOAT(_compiler, _val) \
+    REDUCT_EXPR_CONST_ATOM(_compiler, reduct_atom_lookup_float((_compiler)->reduct, (_val)))
 
 /**
  * @brief Compiles a single Reduct item into an expression descriptor.
@@ -434,7 +437,8 @@ static inline void reduct_compile_call(reduct_compiler_t* compiler, reduct_reg_t
 }
 
 /**
- * @brief Emits a `REDUCT_OPCODE_MOVE` instruction, that moves the value of the source expression to the target register.
+ * @brief Emits a `REDUCT_OPCODE_MOVE` instruction, that moves the value of the source expression to the target
+ * register.
  *
  * @param compiler The compiler context.
  * @param target The target register.
@@ -488,7 +492,8 @@ static inline void reduct_compile_jump_patch(reduct_compiler_t* compiler, reduct
  * @param jumps Array of jump instruction indices.
  * @param count Number of jumps in the array.
  */
-static inline void reduct_compile_jump_patch_list(reduct_compiler_t* compiler, reduct_size_t* jumps, reduct_size_t count)
+static inline void reduct_compile_jump_patch_list(reduct_compiler_t* compiler, reduct_size_t* jumps,
+    reduct_size_t count)
 {
     for (reduct_size_t i = 0; i < count; i++)
     {
@@ -604,7 +609,8 @@ static inline void reduct_compile_return(reduct_compiler_t* compiler, reduct_exp
     }
 
     REDUCT_ASSERT(expr->mode == REDUCT_MODE_REG || expr->mode == REDUCT_MODE_CONST);
-    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_RET | expr->mode), 0, 0, expr->value));
+    reduct_compile_inst(compiler,
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(REDUCT_OPCODE_RET | expr->mode), 0, 0, expr->value));
 }
 
 /**
@@ -638,7 +644,8 @@ static inline void reduct_compile_binary(reduct_compiler_t* compiler, reduct_opc
     REDUCT_ASSERT(compiler != REDUCT_NULL);
     REDUCT_ASSERT(right != REDUCT_NULL);
     REDUCT_ASSERT(right->mode == REDUCT_MODE_REG || right->mode == REDUCT_MODE_CONST);
-    reduct_compile_inst(compiler, REDUCT_INST_MAKE_ABC((reduct_opcode_t)(opBase | right->mode), target, left, right->value));
+    reduct_compile_inst(compiler,
+        REDUCT_INST_MAKE_ABC((reduct_opcode_t)(opBase | right->mode), target, left, right->value));
 }
 
 /**

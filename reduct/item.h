@@ -8,7 +8,7 @@
 #include "list.h"
 
 /**
- * @brief Reduct item management.
+ * @brief Item management.
  * @defgroup item Item
  * @file item.h
  *
@@ -20,7 +20,7 @@
  */
 
 /**
- * @brief Reduct item type enumeration.
+ * @brief Item type enumeration.
  */
 typedef reduct_uint8_t reduct_item_type_t;
 #define REDUCT_ITEM_TYPE_NONE 0      ///< No type.
@@ -31,7 +31,7 @@ typedef reduct_uint8_t reduct_item_type_t;
 #define REDUCT_ITEM_TYPE_LIST_NODE 5 ///< A list node.
 
 /**
- * @brief Reduct item flags enumeration.
+ * @brief Item flags enumeration.
  */
 typedef reduct_uint8_t reduct_item_flags_t;
 #define REDUCT_ITEM_FLAG_NONE 0                ///< No flags.
@@ -46,7 +46,7 @@ typedef reduct_uint8_t reduct_item_flags_t;
 #define REDUCT_ITEM_PAYLOAD_MAX 48 ///< The maximum size of the item payload.
 
 /**
- * @brief Reduct item structure.
+ * @brief Item structure.
  * @struct reduct_item_t
  *
  * Should be exactly 64 bytes for caching.
@@ -61,9 +61,10 @@ typedef struct reduct_item
     reduct_item_type_t type;     ///< The type of the item.
     reduct_uint16_t retainCount; ///< The reference count for GC retention.
     union {
-        reduct_uint32_t length; ///< Common length for the item. (Stored in the union to save space due to padding rules.)
-        reduct_atom_t atom;     ///< An atom.
-        reduct_list_t list;     ///< A list.
+        reduct_uint32_t
+            length;         ///< Common length for the item. (Stored in the union to save space due to padding rules.)
+        reduct_atom_t atom; ///< An atom.
+        reduct_list_t list; ///< A list.
         reduct_list_node_t node;    ///< A list node.
         reduct_function_t function; ///< A function.
         reduct_closure_t closure;   ///< A closure.
@@ -79,7 +80,7 @@ _Static_assert(sizeof(reduct_item_t) == 64, "reduct_item_t must be 64 bytes");
 #define REDUCT_ITEM_BLOCK_MAX 255 ///< The maximum number of items in a block.
 
 /**
- * @brief Reduct item block structure.
+ * @brief Item block structure.
  * @struct reduct_item_block_t
  *
  * Should be a power of two size as that should help most memory allocators.

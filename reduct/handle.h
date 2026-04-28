@@ -7,12 +7,12 @@ struct reduct;
 #include "item.h"
 
 /**
- * @brief Reduct handle management.
+ * @brief Handle management.
  * @defgroup handle Handle
  * @file handle.h
  *
- * A handle is a lightweight reference to a Reduct item, with the ability to cache various flags from its referenced item
- * or the integer/float value of an atom using Tagged Pointers (NaN Boxing).
+ * A handle is a lightweight reference to a Reduct item, with the ability to cache various flags from its referenced
+ * item or the integer/float value of an atom using Tagged Pointers (NaN Boxing).
  *
  * ## 64-bit Handle Bit Layout
  *
@@ -31,7 +31,7 @@ struct reduct;
  */
 
 /**
- * @brief Reduct invalid handle constant.
+ * @brief Invalid handle constant.
  */
 #define REDUCT_HANDLE_NONE 0x0000000000000000ULL
 
@@ -42,7 +42,7 @@ struct reduct;
 
 #define REDUCT_HANDLE_MASK_TAG 0xFFFF000000000000ULL   ///< Mask for handle tag bits.
 #define REDUCT_HANDLE_MASK_VAL 0x0000FFFFFFFFFFFFULL   ///< Mask for handle value bits.
-#define REDUCT_HANDLE_MASK_PTR REDUCT_HANDLE_MASK_VAL    ///< Mask for item pointer bits.
+#define REDUCT_HANDLE_MASK_PTR REDUCT_HANDLE_MASK_VAL  ///< Mask for item pointer bits.
 #define REDUCT_HANDLE_MASK_FLAGS 0x00000000000000FFULL ///< Mask for flags (not stored in handle anymore).
 
 /**
@@ -73,7 +73,8 @@ struct reduct;
  * @param _ptr The pointer to the reduct_item_t.
  * @return The handle.
  */
-#define REDUCT_HANDLE_FROM_ITEM(_ptr) (REDUCT_HANDLE_TAG_ITEM | ((reduct_handle_t)(void*)(_ptr) & REDUCT_HANDLE_MASK_PTR))
+#define REDUCT_HANDLE_FROM_ITEM(_ptr) \
+    (REDUCT_HANDLE_TAG_ITEM | ((reduct_handle_t)(void*)(_ptr) & REDUCT_HANDLE_MASK_PTR))
 
 /**
  * @brief Create a handle from an atom pointer.
@@ -105,7 +106,8 @@ struct reduct;
  * @param _closure The pointer to the reduct_closure_t.
  * @return The handle.
  */
-#define REDUCT_HANDLE_FROM_CLOSURE(_closure) REDUCT_HANDLE_FROM_ITEM(REDUCT_CONTAINER_OF(_closure, reduct_item_t, closure))
+#define REDUCT_HANDLE_FROM_CLOSURE(_closure) \
+    REDUCT_HANDLE_FROM_ITEM(REDUCT_CONTAINER_OF(_closure, reduct_item_t, closure))
 
 /**
  * @brief Check if a handle is an integer.
@@ -130,7 +132,8 @@ struct reduct;
  * @return Non-zero if the handle is integer shaped, zero otherwise.
  */
 #define REDUCT_HANDLE_IS_INT_SHAPED(_handle) \
-    ((REDUCT_HANDLE_IS_INT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_INT_SHAPED)) && !(REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_QUOTED))
+    ((REDUCT_HANDLE_IS_INT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_INT_SHAPED)) && \
+        !(REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_QUOTED))
 
 /**
  * @brief Check if a handle is a float or references a float shaped item.
@@ -139,11 +142,12 @@ struct reduct;
  * @return Non-zero if the handle is float shaped, zero otherwise.
  */
 #define REDUCT_HANDLE_IS_FLOAT_SHAPED(_handle) \
-    ((REDUCT_HANDLE_IS_FLOAT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_FLOAT_SHAPED)) && !(REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_QUOTED))
+    ((REDUCT_HANDLE_IS_FLOAT(_handle) || (REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_FLOAT_SHAPED)) && \
+        !(REDUCT_HANDLE_GET_FLAGS(_handle) & REDUCT_ITEM_FLAG_QUOTED))
 
 /**
  * @brief Get the type of the item referenced by the handle, or `REDUCT_ITEM_TYPE_ATOM` if not an item.
- * 
+ *
  * @param _handle Pointer to the handle.
  */
 #define REDUCT_HANDLE_GET_TYPE(_handle) \
@@ -155,7 +159,8 @@ struct reduct;
  * @param _handle Pointer to the handle.
  * @return Non-zero if the handle is a number, zero otherwise.
  */
-#define REDUCT_HANDLE_IS_NUMBER_SHAPED(_handle) (REDUCT_HANDLE_IS_INT_SHAPED(_handle) || REDUCT_HANDLE_IS_FLOAT_SHAPED(_handle))
+#define REDUCT_HANDLE_IS_NUMBER_SHAPED(_handle) \
+    (REDUCT_HANDLE_IS_INT_SHAPED(_handle) || REDUCT_HANDLE_IS_FLOAT_SHAPED(_handle))
 
 /**
  * @brief Check if a handle is an item.
@@ -265,7 +270,7 @@ struct reduct;
 
 /**
  * @brief Create a boolean handle from a C condition.
- * 
+ *
  * @param _cond The condition to evaluate.
  */
 #define REDUCT_HANDLE_FROM_BOOL(_cond) ((_cond) ? REDUCT_HANDLE_TRUE() : REDUCT_HANDLE_FALSE())
@@ -398,7 +403,8 @@ typedef struct
  * @param b The second handle.
  * @param out The promotion result structure.
  */
-REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a, reduct_handle_t* b, reduct_promotion_t* out);
+REDUCT_API void reduct_handle_promote(struct reduct* reduct, reduct_handle_t* a, reduct_handle_t* b,
+    reduct_promotion_t* out);
 
 /**
  * @brief Check if two items are exactly equal string-wise or structurally.

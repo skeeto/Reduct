@@ -30,7 +30,7 @@ echo "Step 2: Running tests from /tests directory..."
 TEST_COUNT=0
 FAIL_COUNT=0
 
-for test_file in $(find . -maxdepth 1 -name "*.rdt"); do
+for test_file in $(find tests/ -maxdepth 1 -name "*.rdt"); do
     TEST_COUNT=$((TEST_COUNT + 1))
     echo "Testing $test_file ... "
 

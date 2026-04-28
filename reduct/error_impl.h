@@ -9,16 +9,16 @@ static inline const char* reduct_error_type_str(reduct_error_type_t type)
 {
     switch (type)
     {
-        case REDUCT_ERROR_TYPE_SYNTAX:
-            return "syntax error";
-        case REDUCT_ERROR_TYPE_COMPILE:
-            return "compile error";
-        case REDUCT_ERROR_TYPE_RUNTIME:
-            return "runtime error";
-        case REDUCT_ERROR_TYPE_INTERNAL:
-            return "internal error";
-        default:
-            return "error";
+    case REDUCT_ERROR_TYPE_SYNTAX:
+        return "syntax error";
+    case REDUCT_ERROR_TYPE_COMPILE:
+        return "compile error";
+    case REDUCT_ERROR_TYPE_RUNTIME:
+        return "runtime error";
+    case REDUCT_ERROR_TYPE_INTERNAL:
+        return "internal error";
+    default:
+        return "error";
     }
 }
 
@@ -273,7 +273,8 @@ REDUCT_API void reduct_error_check_arity(reduct_t* reduct, reduct_size_t argc, r
 {
     if (REDUCT_UNLIKELY(argc != expected))
     {
-        REDUCT_ERROR_RUNTIME(reduct, "%s expects exactly %zu argument(s), got %zu", name, expected, (reduct_size_t)argc);
+        REDUCT_ERROR_RUNTIME(reduct, "%s expects exactly %zu argument(s), got %zu", name, expected,
+            (reduct_size_t)argc);
     }
 }
 
@@ -281,16 +282,18 @@ REDUCT_API void reduct_error_check_min_arity(reduct_t* reduct, reduct_size_t arg
 {
     if (REDUCT_UNLIKELY(argc < min))
     {
-        REDUCT_ERROR_RUNTIME(reduct, "%s expects at least %zu argument(s), got %zu", name, (reduct_size_t)min, (reduct_size_t)argc);
+        REDUCT_ERROR_RUNTIME(reduct, "%s expects at least %zu argument(s), got %zu", name, (reduct_size_t)min,
+            (reduct_size_t)argc);
     }
 }
 
-REDUCT_API void reduct_error_check_arity_range(reduct_t* reduct, reduct_size_t argc, reduct_size_t min, reduct_size_t max,
-    const char* name)
+REDUCT_API void reduct_error_check_arity_range(reduct_t* reduct, reduct_size_t argc, reduct_size_t min,
+    reduct_size_t max, const char* name)
 {
     if (REDUCT_UNLIKELY(argc < min || argc > max))
     {
-        REDUCT_ERROR_RUNTIME(reduct, "%s expects between %zu and %zu argument(s), got %zu", name, (reduct_size_t)min, (reduct_size_t)max, (reduct_size_t)argc);
+        REDUCT_ERROR_RUNTIME(reduct, "%s expects between %zu and %zu argument(s), got %zu", name, (reduct_size_t)min,
+            (reduct_size_t)max, (reduct_size_t)argc);
     }
 }
 

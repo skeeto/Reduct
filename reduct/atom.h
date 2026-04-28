@@ -8,7 +8,7 @@
 struct reduct;
 
 /**
- * @brief Reduct atom representation and operations.
+ * @brief Atom representation and operations.
  * @defgroup atom Atoms
  * @file atom.h
  *
@@ -32,7 +32,7 @@ struct reduct;
 #define REDUCT_ATOM_SMALL_MAX 15 ///< The maximum length of a small atom.
 
 /**
- * @brief Reduct atom lookup flags.
+ * @brief Atom lookup flags.
  */
 typedef enum
 {
@@ -41,16 +41,16 @@ typedef enum
 } reduct_atom_lookup_flags_t;
 
 /**
- * @brief Reduct atom structure.
+ * @brief Atom structure.
  * @struct reduct_atom_t
  */
 typedef struct reduct_atom
 {
-    reduct_uint32_t length;            ///< The length of the string (must be first, check the `reduct_item_t` structure).
-    reduct_uint32_t hash;              ///< The hash of the string.
+    reduct_uint32_t length; ///< The length of the string (must be first, check the `reduct_item_t` structure).
+    reduct_uint32_t hash;   ///< The hash of the string.
     char small[REDUCT_ATOM_SMALL_MAX]; ///< The small string buffer.
     reduct_intrinsic_t intrinsic;      ///< Cached intrinsic, item must have `REDUCT_ITEM_FLAG_INTRINSIC`.
-    char* string;                    ///< Pointer to the string.
+    char* string;                      ///< Pointer to the string.
     union {
         reduct_int64_t integerValue; ///< Pre-computed integer value, item must have `REDUCT_ITEM_FLAG_INT_SHAPED`.
         reduct_float_t floatValue;   ///< Pre-computed float value, item must have `REDUCT_ITEM_FLAG_FLOAT_SHAPED`.
@@ -109,7 +109,8 @@ REDUCT_API void reduct_atom_deinit(struct reduct* reduct, reduct_atom_t* atom);
  * @param len The length of the string.
  * @return `REDUCT_TRUE` if the atom is equal to the string, `REDUCT_FALSE` otherwise.
  */
-static inline REDUCT_ALWAYS_INLINE reduct_bool_t reduct_atom_is_equal(reduct_atom_t* atom, const char* str, reduct_size_t len)
+static inline REDUCT_ALWAYS_INLINE reduct_bool_t reduct_atom_is_equal(reduct_atom_t* atom, const char* str,
+    reduct_size_t len)
 {
     REDUCT_ASSERT(atom != REDUCT_NULL);
     REDUCT_ASSERT(str != REDUCT_NULL);

@@ -7,7 +7,7 @@
 struct reduct;
 
 /**
- * @brief Reduct built-in library registration and operations.
+ * @brief Built-in library registration and operations.
  * @defgroup stdlib Stdlib
  * @file stdlib.h
  *
@@ -48,7 +48,8 @@ REDUCT_API reduct_handle_t reduct_all(struct reduct* reduct, reduct_handle_t* li
 REDUCT_API reduct_handle_t reduct_sort(struct reduct* reduct, reduct_handle_t* list, reduct_handle_t* callable);
 
 REDUCT_API reduct_handle_t reduct_len(struct reduct* reduct, reduct_size_t argc, reduct_handle_t* argv);
-REDUCT_API reduct_handle_t reduct_range(struct reduct* reduct, reduct_handle_t* start, reduct_handle_t* end, reduct_handle_t* step);
+REDUCT_API reduct_handle_t reduct_range(struct reduct* reduct, reduct_handle_t* start, reduct_handle_t* end,
+    reduct_handle_t* step);
 REDUCT_API reduct_handle_t reduct_concat(struct reduct* reduct, reduct_size_t argc, reduct_handle_t* argv);
 REDUCT_API reduct_handle_t reduct_first(struct reduct* reduct, reduct_handle_t* handle);
 REDUCT_API reduct_handle_t reduct_last(struct reduct* reduct, reduct_handle_t* handle);
@@ -56,14 +57,15 @@ REDUCT_API reduct_handle_t reduct_rest(struct reduct* reduct, reduct_handle_t* h
 REDUCT_API reduct_handle_t reduct_init(struct reduct* reduct, reduct_handle_t* handle);
 REDUCT_API reduct_handle_t reduct_nth(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* index,
     reduct_handle_t* defaultVal);
-REDUCT_API reduct_handle_t reduct_assoc(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* index, reduct_handle_t* value,
-    reduct_handle_t* fillVal);
+REDUCT_API reduct_handle_t reduct_assoc(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* index,
+    reduct_handle_t* value, reduct_handle_t* fillVal);
 REDUCT_API reduct_handle_t reduct_dissoc(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* index);
 REDUCT_API reduct_handle_t reduct_update(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* index,
     reduct_handle_t* callable, reduct_handle_t* fillVal);
 REDUCT_API reduct_handle_t reduct_index_of(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* target);
 REDUCT_API reduct_handle_t reduct_reverse(struct reduct* reduct, reduct_handle_t* handle);
-REDUCT_API reduct_handle_t reduct_slice(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* start, reduct_handle_t* end);
+REDUCT_API reduct_handle_t reduct_slice(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* start,
+    reduct_handle_t* end);
 REDUCT_API reduct_handle_t reduct_flatten(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* depth);
 REDUCT_API reduct_handle_t reduct_contains(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* target);
 REDUCT_API reduct_handle_t reduct_replace(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* oldVal,
@@ -73,7 +75,8 @@ REDUCT_API reduct_handle_t reduct_chunk(struct reduct* reduct, reduct_handle_t* 
 REDUCT_API reduct_handle_t reduct_find(struct reduct* reduct, reduct_handle_t* handle, reduct_handle_t* callable);
 REDUCT_API reduct_handle_t reduct_get_in(struct reduct* reduct, reduct_handle_t* list, reduct_handle_t* path,
     reduct_handle_t* defaultVal);
-REDUCT_API reduct_handle_t reduct_assoc_in(struct reduct* reduct, reduct_handle_t* list, reduct_handle_t* path, reduct_handle_t* val);
+REDUCT_API reduct_handle_t reduct_assoc_in(struct reduct* reduct, reduct_handle_t* list, reduct_handle_t* path,
+    reduct_handle_t* val);
 REDUCT_API reduct_handle_t reduct_dissoc_in(struct reduct* reduct, reduct_handle_t* list, reduct_handle_t* path);
 REDUCT_API reduct_handle_t reduct_update_in(struct reduct* reduct, reduct_handle_t* list, reduct_handle_t* path,
     reduct_handle_t* callable);
@@ -126,7 +129,8 @@ REDUCT_API reduct_handle_t reduct_args(struct reduct* reduct);
 
 REDUCT_API reduct_handle_t reduct_min(struct reduct* reduct, reduct_size_t argc, reduct_handle_t* argv);
 REDUCT_API reduct_handle_t reduct_max(struct reduct* reduct, reduct_size_t argc, reduct_handle_t* argv);
-REDUCT_API reduct_handle_t reduct_clamp(struct reduct* reduct, reduct_handle_t* val, reduct_handle_t* minVal, reduct_handle_t* maxVal);
+REDUCT_API reduct_handle_t reduct_clamp(struct reduct* reduct, reduct_handle_t* val, reduct_handle_t* minVal,
+    reduct_handle_t* maxVal);
 REDUCT_API reduct_handle_t reduct_abs(struct reduct* reduct, reduct_handle_t* val);
 REDUCT_API reduct_handle_t reduct_floor(struct reduct* reduct, reduct_handle_t* val);
 REDUCT_API reduct_handle_t reduct_ceil(struct reduct* reduct, reduct_handle_t* val);

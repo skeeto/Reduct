@@ -10,7 +10,7 @@ struct reduct_item;
 struct reduct_expr;
 
 /**
- * @brief Reduct intrinsic management.
+ * @brief Intrinsic management.
  * @defgroup intrinsic Intrinsics
  * @file intrinsic.h
  *
@@ -23,7 +23,7 @@ struct reduct_expr;
  */
 
 /**
- * @brief Reduct intrinsic types.
+ * @brief Intrinsic types.
  */
 typedef reduct_uint8_t reduct_intrinsic_t;
 
@@ -35,8 +35,8 @@ typedef reduct_uint8_t reduct_intrinsic_t;
 #define REDUCT_INTRINSIC_THREAD 5 ///< Thread
 #define REDUCT_INTRINSIC_DEF 6    ///< Def
 #define REDUCT_INTRINSIC_IF 7     ///< If
-#define REDUCT_INTRINSIC_COND 8  ///< Cond
-#define REDUCT_INTRINSIC_MATCH 9 ///< Match
+#define REDUCT_INTRINSIC_COND 8   ///< Cond
+#define REDUCT_INTRINSIC_MATCH 9  ///< Match
 #define REDUCT_INTRINSIC_AND 10   ///< And
 #define REDUCT_INTRINSIC_OR 11    ///< Or
 #define REDUCT_INTRINSIC_NOT 12   ///< Not
@@ -64,22 +64,23 @@ typedef reduct_uint8_t reduct_intrinsic_t;
 #define REDUCT_INTRINSIC_MAX 34   ///< The amount of intrinsics
 
 /**
- * @brief Reduct intrinsic handler function type.
+ * @brief Intrinsic handler function type.
  */
-typedef void (*reduct_intrinsic_handler_t)(struct reduct_compiler* compiler, struct reduct_item* expr, struct reduct_expr* out);
+typedef void (
+    *reduct_intrinsic_handler_t)(struct reduct_compiler* compiler, struct reduct_item* expr, struct reduct_expr* out);
 
 /**
- * @brief Reduct intrinsic handler functions array.
+ * @brief Intrinsic handler functions array.
  */
 extern reduct_intrinsic_handler_t reductIntrinsicHandlers[REDUCT_INTRINSIC_MAX];
 
 /**
- * @brief Reduct intrinsic native functions array.
+ * @brief Intrinsic native functions array.
  */
 extern reduct_native_fn reductIntrinsicNatives[REDUCT_INTRINSIC_MAX];
 
 /**
- * @brief Reduct intrinsic names array.
+ * @brief Intrinsic names array.
  */
 extern const char* reductIntrinsics[REDUCT_INTRINSIC_MAX];
 
@@ -98,7 +99,7 @@ REDUCT_API void reduct_intrinsic_register_all(struct reduct* reduct);
  * @param startIdx The index to start compiling from.
  * @param out The output expression.
  */
-void reduct_intrinsic_block_generic(struct reduct_compiler* compiler, struct reduct_item* list, reduct_uint32_t startIdx,
-    struct reduct_expr* out);
+void reduct_intrinsic_block_generic(struct reduct_compiler* compiler, struct reduct_item* list,
+    reduct_uint32_t startIdx, struct reduct_expr* out);
 
 #endif

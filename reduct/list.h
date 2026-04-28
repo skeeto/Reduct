@@ -7,7 +7,7 @@ struct reduct_item;
 #include "defs.h"
 
 /**
- * @brief Reduct list management.
+ * @brief List management.
  * @defgroup list List
  * @file list.h
  *
@@ -24,33 +24,32 @@ struct reduct_item;
  *
  */
 
-#define REDUCT_LIST_BITS 2 ///< Number of bits per level in the trie.
+#define REDUCT_LIST_BITS 2                        ///< Number of bits per level in the trie.
 #define REDUCT_LIST_WIDTH (1 << REDUCT_LIST_BITS) ///< The number of children per node.
-#define REDUCT_LIST_MASK (REDUCT_LIST_WIDTH - 1) ///< Mask for the index at each level.
+#define REDUCT_LIST_MASK (REDUCT_LIST_WIDTH - 1)  ///< Mask for the index at each level.
 
 /**
- * @brief Reduct list node structure.
+ * @brief List node structure.
  * @struct reduct_list_node_t
  */
 typedef struct reduct_list_node
 {
-    union
-    {
+    union {
         struct reduct_list_node* children[REDUCT_LIST_WIDTH];
         reduct_handle_t handles[REDUCT_LIST_WIDTH];
     };
 } reduct_list_node_t;
 
 /**
- * @brief Reduct list structure.
+ * @brief List structure.
  * @struct reduct_list_t
  */
 typedef struct reduct_list
 {
-    reduct_uint32_t length;      ///< Total number of elements.
-    reduct_uint32_t shift;       ///< The amount to shift the index to compute access paths.
-    reduct_list_node_t* root;       ///< Pointer to the trie root node.
-    reduct_list_node_t* tail;       ///< Pointer to the tail node.
+    reduct_uint32_t length;   ///< Total number of elements.
+    reduct_uint32_t shift;    ///< The amount to shift the index to compute access paths.
+    reduct_list_node_t* root; ///< Pointer to the trie root node.
+    reduct_list_node_t* tail; ///< Pointer to the tail node.
 } reduct_list_t;
 
 /**
@@ -70,7 +69,8 @@ REDUCT_API reduct_list_t* reduct_list_new(struct reduct* reduct);
  * @param val The new value to set.
  * @return A pointer to the newly created list.
  */
-REDUCT_API reduct_list_t* reduct_list_assoc(struct reduct* reduct, reduct_list_t* list, reduct_size_t index, reduct_handle_t val);
+REDUCT_API reduct_list_t* reduct_list_assoc(struct reduct* reduct, reduct_list_t* list, reduct_size_t index,
+    reduct_handle_t val);
 
 /**
  * @brief Create a new list with the element at the specified index removed.
@@ -91,7 +91,8 @@ REDUCT_API reduct_list_t* reduct_list_dissoc(struct reduct* reduct, reduct_list_
  * @param end The ending index (exclusive).
  * @return A pointer to the newly created list slice.
  */
-REDUCT_API reduct_list_t* reduct_list_slice(struct reduct* reduct, reduct_list_t* list, reduct_size_t start, reduct_size_t end);
+REDUCT_API reduct_list_t* reduct_list_slice(struct reduct* reduct, reduct_list_t* list, reduct_size_t start,
+    reduct_size_t end);
 
 /**
  * @brief Get the nth element of the list.
@@ -115,7 +116,7 @@ REDUCT_API struct reduct_item* reduct_list_nth_item(struct reduct* reduct, reduc
 
 /**
  * @brief Append an element to the list.
- * 
+ *
  * @param reduct Pointer to the Reduct structure.
  * @param list The target list (must be editable).
  * @param val Handle to the value to append.
@@ -124,7 +125,7 @@ REDUCT_API void reduct_list_append(struct reduct* reduct, reduct_list_t* list, r
 
 /**
  * @brief Append all elements from one list to another.
- * 
+ *
  * @param reduct Pointer to the Reduct structure.
  * @param list The target list (must be editable).
  * @param other The source list to copy from.
@@ -132,7 +133,7 @@ REDUCT_API void reduct_list_append(struct reduct* reduct, reduct_list_t* list, r
 REDUCT_API void reduct_list_append_list(struct reduct* reduct, reduct_list_t* list, reduct_list_t* other);
 
 /**
- * @brief Reduct list iterator structure.
+ * @brief List iterator structure.
  */
 typedef struct reduct_list_iter
 {
@@ -149,10 +150,10 @@ typedef struct reduct_list_iter
 
 /**
  * @brief Create a initializer for a list iterator.
- * 
+ *
  * @param _list The list to iterate over.
  */
-#define REDUCT_LIST_ITER(_list) {(_list), 0, REDUCT_NULL, REDUCT_LIST_TAIL_OFFSET(_list) }
+#define REDUCT_LIST_ITER(_list) {(_list), 0, REDUCT_NULL, REDUCT_LIST_TAIL_OFFSET(_list)}
 
 /**
  * @brief Create a initializer for a list iterator start at a specific index.
@@ -160,11 +161,11 @@ typedef struct reduct_list_iter
  * @param _list The list to iterate over.
  * @param _start The starting index.
  */
-#define REDUCT_LIST_ITER_AT(_list, _start) {(_list), (_start), REDUCT_NULL, REDUCT_LIST_TAIL_OFFSET(_list) }
-         
+#define REDUCT_LIST_ITER_AT(_list, _start) {(_list), (_start), REDUCT_NULL, REDUCT_LIST_TAIL_OFFSET(_list)}
+
 /**
  * @brief Get the next element from the iterator.
- * 
+ *
  * @param iter Pointer to the iterator.
  * @param out Pointer to store the retrieved handle.
  * @return REDUCT_TRUE if an element was retrieved, REDUCT_FALSE if the end was reached.
@@ -173,11 +174,12 @@ REDUCT_API reduct_bool_t reduct_list_iter_next(reduct_list_iter_t* iter, reduct_
 
 /**
  * @brief Macro for iterating over all elements in a list.
- * 
+ *
  * @param _handle The reduct_handle_t variable to store each element.
  * @param _list Pointer to the reduct_list_t to iterate.
  */
-#define REDUCT_LIST_FOR_EACH(_handle, _list) for (reduct_list_iter_t _iter = REDUCT_LIST_ITER(_list); reduct_list_iter_next(&_iter, (_handle)); )
+#define REDUCT_LIST_FOR_EACH(_handle, _list) \
+    for (reduct_list_iter_t _iter = REDUCT_LIST_ITER(_list); reduct_list_iter_next(&_iter, (_handle));)
 
 /**
  * @brief Macro for iterating over elements in a list starting from a specific index.
@@ -186,6 +188,7 @@ REDUCT_API reduct_bool_t reduct_list_iter_next(reduct_list_iter_t* iter, reduct_
  * @param _list Pointer to the reduct_list_t to iterate.
  * @param _start The starting index.
  */
-#define REDUCT_LIST_FOR_EACH_AT(_handle, _list, _start) for (reduct_list_iter_t _iter = REDUCT_LIST_ITER_AT(_list, _start); reduct_list_iter_next(&_iter, (_handle)); )
+#define REDUCT_LIST_FOR_EACH_AT(_handle, _list, _start) \
+    for (reduct_list_iter_t _iter = REDUCT_LIST_ITER_AT(_list, _start); reduct_list_iter_next(&_iter, (_handle));)
 
 #endif

@@ -58,7 +58,8 @@ REDUCT_API void reduct_function_grow(reduct_t* reduct, reduct_function_t* func)
 
     reduct_size_t newCapacity = func->instCapacity == 0 ? 16 : func->instCapacity * 2;
     reduct_inst_t* newInsts = (reduct_inst_t*)REDUCT_REALLOC(func->insts, newCapacity * sizeof(reduct_inst_t));
-    reduct_uint32_t* newPositions = (reduct_uint32_t*)REDUCT_REALLOC(func->positions, newCapacity * sizeof(reduct_uint32_t));
+    reduct_uint32_t* newPositions =
+        (reduct_uint32_t*)REDUCT_REALLOC(func->positions, newCapacity * sizeof(reduct_uint32_t));
 
     if (newInsts == REDUCT_NULL || newPositions == REDUCT_NULL)
     {
@@ -70,7 +71,8 @@ REDUCT_API void reduct_function_grow(reduct_t* reduct, reduct_function_t* func)
     func->instCapacity = newCapacity;
 }
 
-REDUCT_API reduct_const_t reduct_function_lookup_constant(reduct_t* reduct, reduct_function_t* func, reduct_const_slot_t* slot)
+REDUCT_API reduct_const_t reduct_function_lookup_constant(reduct_t* reduct, reduct_function_t* func,
+    reduct_const_slot_t* slot)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(func != REDUCT_NULL);

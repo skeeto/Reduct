@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/tools/reduct-cli/reduct",
+            "program": "${workspaceFolder}/build/reduct",
             "args": [
                 "${workspaceFolder}/examples/importer.rdt"
             ],

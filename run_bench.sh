@@ -38,7 +38,7 @@ cmake -S "." -B "$BUILD_DIR" \
 
 cmake --build "$BUILD_DIR" --parallel "$(nproc)" > /dev/null
 
-REDUCT_BIN="./$BUILD_DIR/tools/reduct-cli/reduct"
+REDUCT_BIN="./$BUILD_DIR/reduct"
 if [ ! -f "$REDUCT_BIN" ]; then
     echo -e "${RED}Build failed: Binary not found at $REDUCT_BIN${NC}"
     exit 1

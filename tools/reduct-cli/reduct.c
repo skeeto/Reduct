@@ -1,5 +1,5 @@
 #define REDUCT_INLINE
-#include "../../reduct/reduct.h"
+#include "reduct/reduct.h"
 #include "reduct_version.h"
 
 #include <stdio.h>

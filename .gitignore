@@ -62,3 +62,7 @@ temp*
 meta/docs
 *.zst
 BENCHMARKS.md
+*.bak
+compile_commands.json
+tmp*
+cachegrind*

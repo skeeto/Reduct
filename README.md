@@ -11,7 +11,7 @@
     <a href="https://kainorberg.github.io/Reduct/html/index.html">
       <img src="https://img.shields.io/badge/docs-Doxygen-blue">
     </a>
-    <a href="https://github.com/KaiNorberg/Reduct/blob/main/license">
+    <a href="https://github.com/KaiNorberg/Reduct/blob/main/LICENSE">
       <img src="https://img.shields.io/github/license/KaiNorberg/Reduct">
     </a>
     <a href="https://github.com/KaiNorberg/Reduct/actions/workflows/test.yml">
@@ -24,7 +24,7 @@
 </div>
 <br>
 
-Reduct is a functional, immutable, S-expression based configuration and scripting language. It aims to combine the flexibility of a Lisp with the ease-of-use and performance of a language like Lua. All within a C99 header-only library.
+Reduct is a functional, immutable, S-expression based configuration and scripting language. It aims to combine the flexibility of a Lisp with the ease-of-use and performance of a language like Lua.
 
 ## Tools
 
@@ -46,7 +46,7 @@ You can download pre-built binaries for Linux, macOS, and Windows from the [Rele
 Alternatively, you can build it from source:
 
 ```bash
-cd tools/reduct-cli
+git clone https://github.com/KaiNorberg/Reduct.git
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
@@ -413,15 +413,62 @@ In cases where the same function is called with different arguments depending on
 )
 ```
 
+## C Modules
+
+Reduct supports C modules, which are shared libraries or `.c` files that can be loaded at runtime using the `import` native.
+
+To create a C module, define a function named `reduct_module_init` that returns an association list of the module's exports.
+
+```c
+// my_module.c
+
+#include "reduct/reduct.h"
+
+reduct_handle_t my_native(reduct_t* reduct, reduct_size_t argc, reduct_handle_t* argv)
+{
+    // ...
+    return reduct_handle_nil(reduct);
+}
+
+reduct_handle_t reduct_module_init(reduct_t* reduct)
+{
+    return reduct_list_new_pairs(reduct, 1,
+        "my-native", reduct_atom_new_native(reduct, my_native)
+    );
+}
+```
+
+To compile the module as a shared library:
+
+```bash
+clang -shared -fPIC -o my_module.rdt.so my_module.c
+```
+
+Then, in Reduct:
+
+```lisp
+(def my-module (import "my_module.rdt.so"))
+(my-module.my-native)
+```
+
+Alternatively, we could skip compilation and simply load the `.c` file directly:
+
+```lisp
+(def my-module (import "my_module.c" "clang" "-I.")) // File first, then the compiler to use, finally any additional compiler flags.
+(my-module.my-native)
+```
+
+Reduct will automatically compile the `.c` file into a shared library and load it.
+
+The compiled output will be saved as `my_module.rdt.so` and a modification time check will be used to skip recompilation if the source file hasn't changed.
+
 ## C API
 
-Included is an example of using Reduct as a single header without linking:
+Included is an example of using Reduct as a library:
 
 ```c
 // my_file.c
-
-#define REDUCT_INLINE
-#include "reduct.h"
+#include "reduct/reduct.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -455,30 +502,7 @@ int main(int argc, char **argv)
 }
 ```
 
-Included is another example of using Reduct with linking where an additional implementation file is used to build the Reduct parser and evaluator:
-
-```c
-// my_file.c
-
-#include "reduct.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-
-char buffer[0x10000];
-
-int main(int argc, char **argv)
-{
-    /// Same as above...
-}
-```
-
-```c
-// my_reduct.c
-
-#define REDUCT_IMPL
-#include "reduct.h"
-```
+For more information on the C API, please refer to either the doxygen documentation within the headers or the [generated documentation](https://kainorberg.github.io/Reduct/html/index.html).
 
 ### C Natives
 
@@ -505,45 +529,19 @@ All Reduct standard library functions are available in C, for example, `reduct_i
 
 ### Documentation
 
-For more information, either consult the doxygen documentation within the headers or the generated documentation found [here](https://kainorberg.github.io/Reduct//html/index.html).
+For more information, either consult the doxygen documentation within the headers or the generated documentation found [here](https://kainorberg.github.io/Reduct/html/index.html).
 
 ## Implementation
 
-Reduct is implemented as a register-based bytecode language, where the Reduct source is first parsed into an Abstract Syntax Tree (AST) and then compiled into a custom bytecode format before being executed by the virtual machine/evaluator.
+- Register-based VM executing custom 32-bit bytecode.
+- Uses NaN-boxed [Tagged Pointers](https://en.wikipedia.org/wiki/Tagged_pointer) (`reduct_handle_t`) to store 48-bit integers, doubles, or pointers in a single 64-bit value.
+- 64-byte fixed-size items (`reduct_item_t`) managed by a pool allocator and a simple garbage collector.
+- Lists are implemented as persistent bit-mapped vector tries for $O(\log n)$ performance.
+- Symbol atoms use [String Interning](https://en.wikipedia.org/wiki/String_interning) for $O(1)$ pointer-based comparisons.
+- Includes constant folding, [Tail Call Optimization](https://en.wikipedia.org/wiki/Tail_call), [Computed Gotos](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables), and arena allocation.
+- Utilizes `setjmp`/`longjmp` to minimize error-checking overhead.
 
-> Note that the "Abstract Syntax Tree" is just a Reduct expression, lists and atoms, meaning that the compiler is itself written to operate on the same data structures as the evaluator produces.
-
-The bytecode format itself is a stream of 32bit instructions, with all instructions able to read/write to an array of registers, or read from an array of constants.
-
-*See [inst.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/inst.h) for more information on instructions.*
-
-Since Reduct is immutable, the constants array is also used for "captured" values from outer scopes (closures) and we can also allow the compiler to fold constant expressions at compile-time, far more than would normally be possible.
-
-*See [compile.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/compile.h) for more information on the compiler.*
-
-To improve caching and reduce pointer indirection, Reduct uses "handles" (`reduct_handle_t`) which are [Tagged Pointers](https://en.wikipedia.org/wiki/Tagged_pointer) using NaN boxing to allow a single 64bit value to store either a 48 bit signed integer, IEEE 754 double or a pointer to a heap allocated item.
-
-*See [handle.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/handle.h) for more information on handles.*
-
-Items (`reduct_item_t`) represent all heap allocated objects, such as lists, atoms and closures. All items are exactly 64 bytes in size and allocated using a custom pool allocator and freed using a garbage collector and free list.
-
-Since Reduct uses its handles to store most integers and floats, it can avoid heap allocations for many common values, significantly reducing the pressure on the garbage collector and improving caching.
-
-*See [item.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/item.h) for more information on items.*
-
-Lists are implemented as a "bit-mapped vector trie", providing $O(log_{w} n)$ access, insertion, and deletion, where $w$ is the width of each node in the trie.
-
-*See [list.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/list.h) for more information on lists.*
-
-All symbol atoms use [String Interning](https://en.wikipedia.org/wiki/String_interning), meaning that atoms representing symbols are only stored once in memory. This makes any string comparison into a single pointer comparison.
-
-Other techniques such as arena allocation are also utilized.
-
-*See [atom.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/atom.h) for more information on atoms.*
-
-Many additional optimization techniques are used, for example, [Computed Gotos](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables), [setjmp](https://man7.org/linux/man-pages/man3/longjmp.3.html) based error handling to avoid excessive error checking in the hot path, [Tail Call Optimization](https://en.wikipedia.org/wiki/Tail_call) and much more.
-
-*See [eval.h](https://github.com/KaiNorberg/Reduct/blob/main/reduct/eval.h) for more information on the evaluator.*
+*See the [include/reduct/](https://github.com/KaiNorberg/Reduct/tree/main/include/reduct) and [src/](https://github.com/KaiNorberg/Reduct/tree/main/src) directories for the full implementation details.*
 
 ## Benchmarks
 
@@ -551,88 +549,95 @@ The included results were automatically generated using the `run_bench.sh` scrip
 
 All benchmarks were performed on the following system:
 
-- **Timestamp:** `Fri May  1 02:07:56 AM CEST 2026`
+- **Timestamp:** `Sat May  2 06:07:36 PM CEST 2026`
 - **CPU:** `AMD Ryzen 5 3600X 6-Core Processor`
 - **OS:** `Fedora Linux 43 (KDE Plasma Desktop Edition)`
 - **Kernel:** `6.19.14-200.fc43.x86_64`
-- **Reduct:** `Reduct 1.0.4+d616af0`
+- **Reduct:** `Reduct 2.0.0+fc8fa1f`
 - **Hyperfine:** `hyperfine 1.20.0`
 - **Heaptrack:** `heaptrack 1.5.0`
 - **Lua:** `Lua 5.4.8  Copyright (C) 1994-2025 Lua.org, PUC-Rio`
 - **Python:** `Python 3.14.4`
+- **Janet:** `Janet 1.35.2-meson`
 
 ### brainfuck
 
-| Command | Mean [µs] | Min [µs] | Max [µs] | Relative |
+| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `reduct bench/brainfuck.rdt` | 836.1 ± 143.4 | 743.9 | 2229.9 | 1.00 |
-| `lua bench/brainfuck.lua` | 1110.6 ± 163.9 | 1012.5 | 2397.1 | 1.33 ± 0.30 |
+| `reduct bench/brainfuck.rdt` | 1.0 ± 0.2 | 0.9 | 3.9 | 1.00 |
+| `lua bench/brainfuck.lua` | 1.2 ± 0.2 | 1.0 | 2.4 | 1.17 ± 0.30 |
 
 ##### Memory Usage
 
 | Command | Peak Memory |
 |:---|---:|
-| `reduct bench/brainfuck.rdt` | 139.72K |
+| `reduct bench/brainfuck.rdt` | 132.41K |
 | `lua bench/brainfuck.lua` | 102.77K |
 
 ### fib35
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `reduct bench/fib35.rdt` | 510.2 ± 1.7 | 508.2 | 513.0 | 1.00 |
-| `lua bench/fib35.lua` | 745.8 ± 25.3 | 711.9 | 783.1 | 1.46 ± 0.05 |
-| `python3 bench/fib35.py` | 1036.8 ± 11.9 | 1016.7 | 1057.6 | 2.03 ± 0.02 |
+| `reduct bench/fib35.rdt` | 520.1 ± 9.0 | 509.3 | 542.5 | 1.00 |
+| `lua bench/fib35.lua` | 752.6 ± 40.7 | 729.3 | 858.5 | 1.45 ± 0.08 |
+| `python3 bench/fib35.py` | 1037.1 ± 15.0 | 1019.0 | 1072.3 | 1.99 ± 0.04 |
+| `janet bench/fib35.janet` | 1495.5 ± 58.1 | 1445.7 | 1587.0 | 2.88 ± 0.12 |
 
 ##### Memory Usage
 
 | Command | Peak Memory |
 |:---|---:|
-| `reduct bench/fib35.rdt` | 98.29K |
+| `reduct bench/fib35.rdt` | 98.34K |
 | `lua bench/fib35.lua` | 99.52K |
 | `python3 bench/fib35.py` | 1.82M |
+| `janet bench/fib35.janet` | 1.07M |
 
 ### fib65
 
 | Command | Mean [µs] | Min [µs] | Max [µs] | Relative |
 |:---|---:|---:|---:|---:|
-| `reduct bench/fib65.rdt` | 643.2 ± 111.6 | 560.6 | 1705.1 | 1.00 |
-| `lua bench/fib65.lua` | 989.8 ± 166.3 | 864.1 | 2095.4 | 1.54 ± 0.37 |
-| `python3 bench/fib65.py` | 11932.9 ± 1433.3 | 11110.2 | 22316.1 | 18.55 ± 3.91 |
+| `reduct bench/fib65.rdt` | 748.1 ± 141.3 | 617.0 | 2133.3 | 1.00 |
+| `lua bench/fib65.lua` | 1023.4 ± 212.7 | 881.1 | 2051.6 | 1.37 ± 0.38 |
+| `python3 bench/fib65.py` | 12110.8 ± 1486.0 | 11212.3 | 22285.1 | 16.19 ± 3.65 |
+| `janet bench/fib65.janet` | 3411.9 ± 494.4 | 3153.6 | 6672.3 | 4.56 ± 1.09 |
 
 ##### Memory Usage
 
 | Command | Peak Memory |
 |:---|---:|
-| `reduct bench/fib65.rdt` | 97.06K |
+| `reduct bench/fib65.rdt` | 97.12K |
 | `lua bench/fib65.lua` | 99.38K |
 | `python3 bench/fib65.py` | 1.82M |
+| `janet bench/fib65.janet` | 1.07M |
 
 ### fizzbuzz
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `reduct bench/fizzbuzz.rdt` | 1.7 ± 0.3 | 1.5 | 3.6 | 1.00 |
-| `lua bench/fizzbuzz.lua` | 6.0 ± 0.9 | 5.5 | 12.5 | 3.58 ± 0.83 |
+| `reduct bench/fizzbuzz.rdt` | 1.8 ± 0.2 | 1.7 | 4.3 | 1.00 |
+| `lua bench/fizzbuzz.lua` | 6.2 ± 1.1 | 5.8 | 12.1 | 3.43 ± 0.73 |
+| `janet bench/fizzbuzz.janet` | 9.6 ± 0.8 | 9.3 | 19.6 | 5.35 ± 0.78 |
 
 ##### Memory Usage
 
 | Command | Peak Memory |
 |:---|---:|
-| `reduct bench/fizzbuzz.rdt` | 97.11K |
+| `reduct bench/fizzbuzz.rdt` | 97.18K |
 | `lua bench/fizzbuzz.lua` | 102.38K |
+| `janet bench/fizzbuzz.janet` | 1.21M |
 
 ### mandelbrot
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `reduct bench/mandelbrot.rdt` | 308.7 ± 4.4 | 305.0 | 316.5 | 1.00 |
-| `lua bench/mandelbrot.lua` | 342.6 ± 13.2 | 330.8 | 367.1 | 1.11 ± 0.05 |
+| `reduct bench/mandelbrot.rdt` | 336.3 ± 1.6 | 333.6 | 338.6 | 1.00 |
+| `lua bench/mandelbrot.lua` | 352.9 ± 14.4 | 340.0 | 382.3 | 1.05 ± 0.04 |
 
 ##### Memory Usage
 
 | Command | Peak Memory |
 |:---|---:|
-| `reduct bench/mandelbrot.rdt` | 159.50K |
+| `reduct bench/mandelbrot.rdt` | 154.49K |
 | `lua bench/mandelbrot.lua` | 112.34K |
 
 ## Testing
@@ -648,11 +653,13 @@ In addition to the test script, the code base heavily uses assertions to, hopefu
 The grammar of Reduct is designed to be as straight forward as possible, the full grammar using [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) can be found below.
 
 ```ebnf
-file = { expression | white_space | comment } ;
+file = [ shebang ], { expression | white_space | comment } ;
 expression = item | infix ;
 item = list | atom ;
 
 infix =  "{", { expression | white_space | comment }, "}" ;
+
+shebang = "#!", { character | " " | "\t" }, [ "\n" | "\r" ] ;
 
 list = "(", { expression | white_space | comment }, ")" ;
 
@@ -1237,9 +1244,13 @@ Parses the provided string into a Reduct expression without evaluating it.
 
 Parses and evaluates the provided string.
 
-**`(import <path: string>) -> <item>`**
+**`(import <path: string> [compiler: string] [compiler-args: string]) -> <item>`**
 
-Parses and evaluates the file at the provided path, returning the result.
+Offers three modes, depending on the file extension:
+
+1. **`.so` / `.dll` / `.dylib`**: Loads a pre-compiled shared library as a C module.
+2. **`.c`**: Compiles the C file into a shared library using the specified compiler and flags, then loads it.
+3. **`.rdt` / other**: Parses and evaluates the file at the provided path, returning the result.
 
 Primarily intended to be used for importing libraries or modules, where libraries return a association list.
 

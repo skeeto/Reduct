@@ -1,0 +1,5 @@
+#!/usr/bin/reduct
+
+(def module (import "module.rdt.so"))
+
+(concat (module.my-native) "\n")

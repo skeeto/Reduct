@@ -2,7 +2,7 @@
     "name": "reduct",
     "displayName": "Reduct Language Support",
     "description": "Syntax highlighting and language support for Reduct",
-    "version": "1.0.6",
+    "version": "2.0.0",
     "author": "Kai Norberg",
     "publisher": "KaiNorberg",
     "repository": {
@@ -31,7 +31,8 @@
                     ".reduct",
                     ".rdt"
                 ],
-                "configuration": "./language-configuration.json"
+                "configuration": "./language-configuration.json",
+                "firstLine": "^#!.*\\breduct\\b"
             }
         ],
         "grammars": [

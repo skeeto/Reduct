@@ -7,7 +7,7 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-SOURCE_DIR="tools/reduct-cli"
+ROOT_DIR="."
 BUILD_DIR="bench/build_release"
 BENCH_DIR="bench"
 OUTPUT_MD="BENCHMARKS.md"
@@ -31,14 +31,14 @@ check_dep "heaptrack_print"
 
 echo -e "Step 1: Compiling Reduct in Release Mode..."
 
-cmake -S "$SOURCE_DIR" -B "$BUILD_DIR" \
+cmake -S "." -B "$BUILD_DIR" \
     -DCMAKE_BUILD_TYPE=Release \
     -DREDUCT_USE_SANITIZERS=OFF \
     -DREDUCT_USE_FUZZER=OFF > /dev/null
 
 cmake --build "$BUILD_DIR" --parallel "$(nproc)" > /dev/null
 
-REDUCT_BIN="./$BUILD_DIR/reduct"
+REDUCT_BIN="./$BUILD_DIR/tools/reduct-cli/reduct"
 if [ ! -f "$REDUCT_BIN" ]; then
     echo -e "${RED}Build failed: Binary not found at $REDUCT_BIN${NC}"
     exit 1
@@ -59,7 +59,8 @@ echo -e "- **Reduct:** \`$($REDUCT_BIN --version 2>/dev/null || echo "unknown")\
 echo -e "- **Hyperfine:** \`$(hyperfine --version)\`" >> "$OUTPUT_MD"
 echo -e "- **Heaptrack:** \`$(heaptrack --version | head -n 1)\`" >> "$OUTPUT_MD"
 echo -e "- **Lua:** \`$(lua -v 2>&1 | head -n 1)\`" >> "$OUTPUT_MD"
-echo -e "- **Python:** \`$(python3 --version)\`\n" >> "$OUTPUT_MD"
+echo -e "- **Python:** \`$(python3 --version)\`" >> "$OUTPUT_MD"
+echo -e "- **Janet:** \`Janet $(janet -v 2>/dev/null || echo "unknown")\`\n" >> "$OUTPUT_MD"
 
 RDT_FILES=$(find "$BENCH_DIR" -maxdepth 1 -name "*.rdt" | sort)
 
@@ -84,6 +85,11 @@ for rdt_file in $RDT_FILES; do
     python_script="$BENCH_DIR/$base_name.py"
     if [ -f "$python_script" ]; then
         cmds+=("python3 $python_script")
+    fi
+
+    janet_script="$BENCH_DIR/$base_name.janet"
+    if [ -f "$janet_script" ]; then
+        cmds+=("janet $janet_script")
     fi
 
     hyperfine --warmup=10 -N --export-markdown "tmp_hf.md" "${cmds[@]}"

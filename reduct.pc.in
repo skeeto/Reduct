@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: Reduct
+Description: Functional, immutable, S-expression based configuration/scripting language
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lreduct
+Libs.private: -lm
+Cflags: -I${includedir}

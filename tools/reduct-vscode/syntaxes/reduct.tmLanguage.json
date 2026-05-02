@@ -4,6 +4,9 @@
     "scopeName": "source.reduct",
     "patterns": [
         {
+            "include": "#shebang"
+        },
+        {
             "include": "#comments"
         },
         {
@@ -38,6 +41,10 @@
         }
     ],
     "repository": {
+        "shebang": {
+            "match": "^#!.*$",
+            "name": "comment.line.number-sign.reduct"
+        },
         "comments": {
             "patterns": [
                 {

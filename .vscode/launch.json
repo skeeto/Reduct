@@ -8,9 +8,9 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tools/reduct-cli/build/reduct",
+            "program": "${workspaceFolder}/build/tools/reduct-cli/reduct",
             "args": [
-                "${workspaceFolder}/tests/04_sequences.rdt"
+                "${workspaceFolder}/examples/importer.rdt"
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

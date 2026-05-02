@@ -1,0 +1,13 @@
+#include "reduct/reduct.h"
+
+reduct_handle_t my_native(reduct_t* reduct, reduct_size_t argc, reduct_handle_t* argv)
+{
+    return REDUCT_HANDLE_FROM_INT(52);
+}
+
+reduct_handle_t reduct_module_init(reduct_t* reduct)
+{
+    return REDUCT_HANDLE_PAIRS(reduct, 1,
+        "my-native", REDUCT_HANDLE_NATIVE(reduct, my_native)
+    );
+}

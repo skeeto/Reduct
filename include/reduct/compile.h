@@ -17,8 +17,6 @@
  *
  * The compilation process converts S-expressions into register-based bytecode that can be executed by the Reduct
  * virtual machine / evaluator.
- * 
- * ## 
  *
  * @{
  */

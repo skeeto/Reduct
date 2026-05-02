@@ -26,6 +26,24 @@
 
 Reduct is a functional, immutable, S-expression based configuration and scripting language. It aims to combine the flexibility of a Lisp with the ease-of-use and performance of a language like Lua.
 
+## Setup
+
+You can download pre-built binaries for Linux, macOS, and Windows from the [Releases](https://github.com/KaiNorberg/Reduct/releases) page.
+
+Alternatively, you can build Reduct from source:
+
+```bash
+git clone https://github.com/KaiNorberg/Reduct.git
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+To install write:
+
+```bash
+cmake --install build # if that fails: sudo cmake --install build
+```
+
 ## Tools
 
 ### Command Line Interface (CLI)
@@ -39,29 +57,9 @@ reduct -d my_file.rdt # output the compiled bytecode
 reduct -s my_file.rdt # silent mode, wont output the result of the evaluation
 ```
 
-#### Setup
-
-You can download pre-built binaries for Linux, macOS, and Windows from the [Releases](https://github.com/KaiNorberg/Reduct/releases) page.
-
-Alternatively, you can build it from source:
-
-```bash
-git clone https://github.com/KaiNorberg/Reduct.git
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-```
-
-To install the tool write:
-
-```bash
-cmake --install build # if that fails: sudo cmake --install build
-```
-
 ### Visual Studio Code
 
 A syntax highlighting extension for Visual Studio Code can be found at `tools/reduct-vscode/`.
-
-#### Setup
 
 The extension can be found on the [marketplace](https://marketplace.visualstudio.com/items?itemName=KaiNorberg.reduct).
 
@@ -79,7 +77,7 @@ For example:
 ("atom1" atom2 3.14 (4atom 5678)) // A list containing three atoms and a list.
 ```
 
-The tree structure that this creates is called an Abstract Syntax Tree (AST), and for some use cases, that will be enough.
+The tree structure that this creates is referred to as an Abstract Syntax Tree (AST), and for some use cases, that will be enough.
 
 The evaluation of an AST is an optional part of the language.
 
@@ -94,7 +92,7 @@ For example:
 (* 3 4) // Evaluates to "12"
 ```
 
-> Note how the top level expression is implicitly a `do` block, with the last evaluation being returned.
+> Note that the top level expression is implicitly a `do` block, with the last evaluation being returned.
 
 ### Atoms
 
@@ -125,6 +123,17 @@ To call a callable, use it as the first item in a list:
 ((lambda (n) (* n n)) 5) // Evaluates to "25"
 ```
 
+Note that a list will be considered to be a function call if the first element is a callable, this rule applies recursively.
+
+For example:
+
+```lisp
+(func 1 2) // Function call.
+(1 func 2) // Not a function call.
+((func 1 2) 3) // Both the inner and outer lists are function calls.
+((1 func 2) 3) // Neither lists are function calls.
+```
+
 ### Hello World
 
 We should now know enough to write a basic "Hello World" script.
@@ -151,7 +160,7 @@ Reduct aims to provide a series of potential advantages that over existing langu
 
 ### Performance
 
-Reduct is designed to be fast and efficient, utilizing a register-based VM and many other techniques to improve performance, allowing it to outperform even Lua (though not the JIT version obviously, maybe one day...), in some benchmarks.
+Reduct utilizes a register-based VM and many other techniques to improve performance, allowing it to outperform even Lua (though not the JIT version obviously, maybe one day...), in some benchmarks.
 
 See [Benchmarks](#benchmarks) for more information.
 
@@ -163,7 +172,7 @@ The most often blamed source of this poor readability is the sheer volume of par
 
 Reduct makes the argument that most of these complaints are due to nesting, not parentheses; that it can be solved via infix notation, banning `let` and a more modern style guide.
 
-Included are three examples of a basic program written in common Lisp C, and Reduct.
+Included are three examples of a basic program written in common Lisp, C and Reduct.
 
 #### Lisp
 
@@ -197,8 +206,6 @@ int main()
 )
 ```
 
-Note how in Reduct the use of curly braces for infix notation and the `def` intrinsic for scoped definitions allows for a more familiar, imperative-like structure while remaining entirely functional, and S-expression based.
-
 ### Flexibility
 
 Since code and data are represented using the same structures, Reduct can be used for practically anything.
@@ -226,6 +233,8 @@ Included is an example of what that might look like:
 )
 ```
 
+> Note that since the "button" list is last, it is what will be returned from the script.
+
 Despite that original use case, Reduct can just as easily be utilized for scripting, configuration, or even as a general-purpose embedded language.
 
 ## Additional Concepts
@@ -245,6 +254,7 @@ For example:
 (* 2 3) // Evaluates to "6"
 (/ 10 3) // Evaluates to "3"
 (/ 10 3.0) // Evaluates to "3.333333"
+(+ "1" 2) // Error
 ```
 
 ### Truthiness
@@ -264,7 +274,7 @@ For example:
 
 ### Ordering
 
-Reduct defines a total ordering for all possible items. This is used by comparison primitives like `<` or `sort`.
+Reduct defines a total ordering for all possible items. This is used by comparison intrinsics and natives like `<` or `sort`.
 
 The ordering of types is defined as:
 
@@ -289,11 +299,11 @@ For example, all following expressions are true:
 (< (1 2) (1 2 3))
 ```
 
-### Variables
+### Locals
 
-Variables are defined using the `def` intrinsic and can be accessed using their names. Just like everything else, variables are immutable and as such there is no `set` or similar intrinsic.
+Locals are defined using the `def` intrinsic and can be accessed using their names. Just like everything else, locals are immutable and as such there is no `set` or similar intrinsic.
 
-As an example, variables can be used to create a more traditional "function definition" by defining a variable as a lambda:
+As an example, locals can be used to create a more traditional "function definition" by defining a variable as a lambda:
 
 ```lisp
 (def add (lambda (a b) (+ a b)))
@@ -331,6 +341,8 @@ data.a // (get-in data "a") -> 1
 data.(nth "ab" 1) // (get-in data (nth "ab" 1)) -> 2
 data.c.d // (get-in data ("c" "d")) -> 3
 ```
+
+> This feature primarily exists to make the `import` native easier to use.
 
 ### Infix Expressions
 
@@ -426,14 +438,13 @@ To create a C module, define a function named `reduct_module_init` that returns 
 
 reduct_handle_t my_native(reduct_t* reduct, reduct_size_t argc, reduct_handle_t* argv)
 {
-    // ...
-    return reduct_handle_nil(reduct);
+    return REDUCT_HANDLE_FROM_INT(52);
 }
 
 reduct_handle_t reduct_module_init(reduct_t* reduct)
 {
-    return reduct_list_new_pairs(reduct, 1,
-        "my-native", reduct_atom_new_native(reduct, my_native)
+    return REDUCT_HANDLE_PAIRS(reduct, 1,
+        "my-native", REDUCT_HANDLE_NATIVE(reduct, my_native)
     );
 }
 ```
@@ -502,8 +513,6 @@ int main(int argc, char **argv)
 }
 ```
 
-For more information on the C API, please refer to either the doxygen documentation within the headers or the [generated documentation](https://kainorberg.github.io/Reduct/html/index.html).
-
 ### C Natives
 
 Reduct allows for the registration of C functions as "natives" that can be called from within Reduct.
@@ -538,8 +547,9 @@ For more information, either consult the doxygen documentation within the header
 - 64-byte fixed-size items (`reduct_item_t`) managed by a pool allocator and a simple garbage collector.
 - Lists are implemented as persistent bit-mapped vector tries for $O(\log n)$ performance.
 - Symbol atoms use [String Interning](https://en.wikipedia.org/wiki/String_interning) for $O(1)$ pointer-based comparisons.
-- Includes constant folding, [Tail Call Optimization](https://en.wikipedia.org/wiki/Tail_call), [Computed Gotos](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables), and arena allocation.
+- Includes constant folding, [Tail Call Optimization](https://en.wikipedia.org/wiki/Tail_call), [Computed Gotos](https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables), and much more.
 - Utilizes `setjmp`/`longjmp` to minimize error-checking overhead.
+- Micro optimized with the help of `cachegrind`.
 
 *See the [include/reduct/](https://github.com/KaiNorberg/Reduct/tree/main/include/reduct) and [src/](https://github.com/KaiNorberg/Reduct/tree/main/src) directories for the full implementation details.*
 

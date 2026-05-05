@@ -19,6 +19,7 @@ struct reduct_closure;
 
 #define REDUCT_EVAL_FRAMES_INITIAL 32      ///< The initial size of the frames array.
 #define REDUCT_EVAL_FRAMES_GROWTH_FACTOR 2 ///< The growth factor of the frames array.
+#define REDUCT_EVAL_FRAMES_MAX 1024        ///< Maximum non-tail recursion depth before a runtime error is thrown.
 
 /**
  * @brief Evaluation frame structure.

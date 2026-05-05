@@ -85,11 +85,23 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 option(REDUCT_USE_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
+option(REDUCT_USE_FUZZER "Enable libFuzzer instrumentation" OFF)
+
 if(REDUCT_USE_SANITIZERS AND NOT WIN32)
     target_compile_options(reduct PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
     target_link_options(reduct PRIVATE -fsanitize=address,undefined)
     target_compile_options(reduct_static PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
     target_link_options(reduct_static PRIVATE -fsanitize=address,undefined)
+endif()
+
+# When fuzzing, instrument the static library with libFuzzer coverage callbacks
+# AND with the address+undefined sanitizers, so the fuzzer (which only links
+# against reduct_static) can detect UB and memory errors inside library code.
+if(REDUCT_USE_FUZZER AND NOT (WIN32 OR APPLE))
+    target_compile_options(reduct_static PRIVATE
+        -fsanitize=fuzzer-no-link,address,undefined
+        -fno-omit-frame-pointer
+        -g)
 endif()
 
 if(NOT WIN32)

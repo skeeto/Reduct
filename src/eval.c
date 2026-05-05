@@ -36,6 +36,10 @@ static inline REDUCT_ALWAYS_INLINE void reduct_eval_push_frame(reduct_t* reduct,
     REDUCT_ASSERT(reduct != REDUCT_NULL);
     REDUCT_ASSERT(closure != REDUCT_NULL);
 
+    if (REDUCT_UNLIKELY(reduct->frameCount >= REDUCT_EVAL_FRAMES_MAX))
+    {
+        REDUCT_ERROR_RUNTIME(reduct, "recursion depth limit (%u) exceeded", REDUCT_EVAL_FRAMES_MAX);
+    }
     if (REDUCT_UNLIKELY(reduct->frameCount >= reduct->frameCapacity))
     {
         reduct->frameCapacity *= REDUCT_EVAL_FRAMES_GROWTH_FACTOR;

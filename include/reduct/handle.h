@@ -455,12 +455,13 @@ struct reduct;
         if (REDUCT_LIKELY( \
                 (((_bVal ^ REDUCT_HANDLE_TAG_INT) | (_cVal ^ REDUCT_HANDLE_TAG_INT)) & REDUCT_HANDLE_MASK_TAG) == 0)) \
         { \
+            reduct_int64_t _bi = REDUCT_HANDLE_TO_INT(&_bVal); \
             reduct_int64_t _cv = REDUCT_HANDLE_TO_INT(&_cVal); \
             if (REDUCT_UNLIKELY(_cv == 0)) \
             { \
                 REDUCT_ERROR_RUNTIME(_reduct, "modulo by zero"); \
             } \
-            *(_a) = REDUCT_HANDLE_FROM_INT(REDUCT_HANDLE_TO_INT(&_bVal) % _cv); \
+            *(_a) = REDUCT_HANDLE_FROM_INT((_bi == INT64_MIN && _cv == -1) ? 0 : (_bi % _cv)); \
         } \
         else \
         { \
@@ -474,7 +475,8 @@ struct reduct;
             { \
                 REDUCT_ERROR_RUNTIME(_reduct, "modulo by zero"); \
             } \
-            *(_a) = REDUCT_HANDLE_FROM_INT(prom.a.intVal % prom.b.intVal); \
+            *(_a) = REDUCT_HANDLE_FROM_INT( \
+                (prom.a.intVal == INT64_MIN && prom.b.intVal == -1) ? 0 : (prom.a.intVal % prom.b.intVal)); \
         } \
     } while (0)
 

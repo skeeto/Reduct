@@ -786,7 +786,15 @@ static inline reduct_atom_t* reduct_fold_binary_calc(reduct_compiler_t* compiler
             }
             return reduct_atom_new_int(compiler->reduct, li / ri);
         case REDUCT_OPCODE_MOD:
-            return (ri == 0) ? REDUCT_NULL : reduct_atom_new_int(compiler->reduct, li % ri);
+            if (ri == 0)
+            {
+                return REDUCT_NULL;
+            }
+            if (li == INT64_MIN && ri == -1)
+            {
+                return reduct_atom_new_int(compiler->reduct, 0);
+            }
+            return reduct_atom_new_int(compiler->reduct, li % ri);
         case REDUCT_OPCODE_BAND:
             return reduct_atom_new_int(compiler->reduct, li & ri);
         case REDUCT_OPCODE_BOR:
@@ -1368,6 +1376,10 @@ static reduct_handle_t reduct_intrinsic_native_mod(reduct_t* reduct, reduct_size
     if (prom.b.intVal == 0)
     {
         REDUCT_ERROR_RUNTIME(reduct, "modulo by zero");
+    }
+    if (prom.a.intVal == INT64_MIN && prom.b.intVal == -1)
+    {
+        return REDUCT_HANDLE_FROM_INT(0);
     }
     return REDUCT_HANDLE_FROM_INT(prom.a.intVal % prom.b.intVal);
 }

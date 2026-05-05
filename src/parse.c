@@ -411,7 +411,28 @@ static inline reduct_list_t* reduct_parse_list(reduct_parse_ctx_t* ctx, char exp
         default:
         {
             reduct_atom_t* atom = reduct_parse_unquoted_atom(ctx);
-            if (!reduct_atom_is_number(atom) && REDUCT_MEMCHR(atom->string, '.', atom->length) != REDUCT_NULL)
+            // The get-in sugar `target.path` needs both a dot AND a non-dot char in the
+            // atom — an all-dot atom (`.`, `..`) would form (get-in <NONE> ...) and crash
+            // the compiler.
+            reduct_bool_t isDotAtom = REDUCT_FALSE;
+            if (!reduct_atom_is_number(atom))
+            {
+                reduct_bool_t hasDot = REDUCT_FALSE;
+                reduct_bool_t hasNonDot = REDUCT_FALSE;
+                for (reduct_size_t i = 0; i < atom->length; i++)
+                {
+                    if (atom->string[i] == '.')
+                    {
+                        hasDot = REDUCT_TRUE;
+                    }
+                    else
+                    {
+                        hasNonDot = REDUCT_TRUE;
+                    }
+                }
+                isDotAtom = hasDot && hasNonDot;
+            }
+            if (isDotAtom)
             {
                 reduct_parse_dot_atom(ctx, &getInList, &getInTarget, atom);
             }

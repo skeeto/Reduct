@@ -286,7 +286,7 @@ REDUCT_API reduct_atom_t* reduct_atom_new_int(reduct_t* reduct, reduct_int64_t v
     if (value < 0)
     {
         isNegative = REDUCT_TRUE;
-        uval = (unsigned long long)(-value);
+        uval = -(unsigned long long)value;
     }
     else
     {
@@ -499,6 +499,38 @@ REDUCT_API reduct_atom_t* reduct_atom_lookup(reduct_t* reduct, const char* str, 
 
 #define REDUCT_ATOM_MAX_NUMBER_LENGTH 70
 
+// Combine a parsed sign (1 or -1) and an unsigned magnitude into a signed int64,
+// reporting overflow without invoking signed multiplication or negation UB. The
+// caller treats overflow as "not a parsable integer" and leaves the atom untyped.
+static inline reduct_bool_t reduct_atom_signed_int_from_magnitude(int sign, reduct_uint64_t magnitude,
+    reduct_int64_t* out)
+{
+    if (sign < 0)
+    {
+        if (magnitude > (reduct_uint64_t)INT64_MAX + 1ULL)
+        {
+            return REDUCT_FALSE;
+        }
+        if (magnitude == (reduct_uint64_t)INT64_MAX + 1ULL)
+        {
+            *out = INT64_MIN;
+        }
+        else
+        {
+            *out = -(reduct_int64_t)magnitude;
+        }
+    }
+    else
+    {
+        if (magnitude > (reduct_uint64_t)INT64_MAX)
+        {
+            return REDUCT_FALSE;
+        }
+        *out = (reduct_int64_t)magnitude;
+    }
+    return REDUCT_TRUE;
+}
+
 REDUCT_API void reduct_atom_check_number(reduct_atom_t* atom)
 {
     REDUCT_ASSERT(atom != REDUCT_NULL);
@@ -614,8 +646,13 @@ REDUCT_API void reduct_atom_check_number(reduct_atom_t* atom)
         }
         if (valid && hasDigits && p == end && *(end - 1) != '_')
         {
+            reduct_int64_t parsed;
+            if (!reduct_atom_signed_int_from_magnitude(sign, intValue, &parsed))
+            {
+                return;
+            }
             atom->flags |= REDUCT_ATOM_FLAG_INTEGER;
-            atom->integerValue = sign * (reduct_int64_t)intValue;
+            atom->integerValue = parsed;
             if (atom->integerValue == 0)
             {
                 item->flags |= REDUCT_ITEM_FLAG_FALSY;
@@ -757,8 +794,13 @@ REDUCT_API void reduct_atom_check_number(reduct_atom_t* atom)
         }
         else
         {
+            reduct_int64_t parsed;
+            if (!reduct_atom_signed_int_from_magnitude(sign, intValue, &parsed))
+            {
+                return;
+            }
             atom->flags |= REDUCT_ATOM_FLAG_INTEGER;
-            atom->integerValue = sign * (reduct_int64_t)intValue;
+            atom->integerValue = parsed;
             if (atom->integerValue == 0)
             {
                 item->flags |= REDUCT_ITEM_FLAG_FALSY;

@@ -434,14 +434,16 @@ LABEL_C_OP(label_shl, {
         left = reduct_get_int(reduct, &valC);
     }
     REDUCT_ERROR_RUNTIME_ASSERT(reduct, left >= 0 && left < 64, "left shift amount must be 0-63, got %ld", left);
+    reduct_uint64_t value;
     if (REDUCT_LIKELY(REDUCT_HANDLE_IS_INT(&base[b])))
     {
-        base[a] = REDUCT_HANDLE_FROM_INT(REDUCT_HANDLE_TO_INT(&base[b]) << left);
+        value = (reduct_uint64_t)REDUCT_HANDLE_TO_INT(&base[b]);
     }
     else
     {
-        base[a] = REDUCT_HANDLE_FROM_INT(reduct_get_int(reduct, &base[b]) << left);
+        value = (reduct_uint64_t)reduct_get_int(reduct, &base[b]);
     }
+    base[a] = REDUCT_HANDLE_FROM_INT((reduct_int64_t)(value << left));
     DISPATCH();
 })
 LABEL_C_OP(label_shr, {

@@ -802,7 +802,9 @@ static inline reduct_atom_t* reduct_fold_binary_calc(reduct_compiler_t* compiler
         case REDUCT_OPCODE_BXOR:
             return reduct_atom_new_int(compiler->reduct, li ^ ri);
         case REDUCT_OPCODE_SHL:
-            return (ri < 0 || ri >= 64) ? REDUCT_NULL : reduct_atom_new_int(compiler->reduct, li << ri);
+            return (ri < 0 || ri >= 64)
+                ? REDUCT_NULL
+                : reduct_atom_new_int(compiler->reduct, (reduct_int64_t)((reduct_uint64_t)li << ri));
         case REDUCT_OPCODE_SHR:
             return (ri < 0 || ri >= 64) ? REDUCT_NULL : reduct_atom_new_int(compiler->reduct, li >> ri);
         default:
@@ -1417,7 +1419,7 @@ static reduct_handle_t reduct_intrinsic_native_shl(reduct_t* reduct, reduct_size
     {
         REDUCT_ERROR_RUNTIME(reduct, "<<: shift amount must be 0-63, got %ld", right);
     }
-    return REDUCT_HANDLE_FROM_INT(left << right);
+    return REDUCT_HANDLE_FROM_INT((reduct_int64_t)((reduct_uint64_t)left << right));
 }
 
 static reduct_handle_t reduct_intrinsic_native_shr(reduct_t* reduct, reduct_size_t argc, reduct_handle_t* argv)

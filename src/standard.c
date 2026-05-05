@@ -2442,7 +2442,8 @@ REDUCT_API reduct_handle_t reduct_clamp(reduct_t* reduct, reduct_handle_t* val, 
         return REDUCT_HANDLE_FROM_FLOAT((reduct_float_t)_floatFunc(f)); \
     }
 
-#define REDUCT_INT_ABS(_x) ((_x) < 0 ? -(_x) : (_x))
+// Negate via uint64 to keep `abs(INT64_MIN)` defined (it stays INT64_MIN, matching glibc labs).
+#define REDUCT_INT_ABS(_x) ((_x) < 0 ? (reduct_int64_t)(-(reduct_uint64_t)(_x)) : (_x))
 REDUCT_MATH_UNARY_IMPL(reduct_abs, REDUCT_INT_ABS, REDUCT_FABS)
 REDUCT_MATH_UNARY_IMPL(reduct_exp, REDUCT_EXP, REDUCT_EXP)
 REDUCT_MATH_UNARY_IMPL(reduct_sqrt, REDUCT_SQRT, REDUCT_SQRT)

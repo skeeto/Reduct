@@ -13,15 +13,17 @@ if(REDUCT_USE_SANITIZERS AND NOT WIN32)
 endif()
 
 if(REDUCT_USE_FUZZER AND NOT (WIN32 OR APPLE))
-    add_executable(fuzz fuzz.c)
-    target_link_libraries(fuzz PRIVATE reduct_static)
-    target_include_directories(fuzz PRIVATE "${CMAKE_BINARY_DIR}")
-    target_compile_options(fuzz PRIVATE
-        -fsanitize=fuzzer,address,undefined
-        -fno-omit-frame-pointer
-        -g
-    )
-    target_link_options(fuzz PRIVATE -fsanitize=fuzzer,address,undefined)
+    foreach(fuzzer fuzz fuzz_parse fuzz_eval)
+        add_executable(${fuzzer} ${fuzzer}.c)
+        target_link_libraries(${fuzzer} PRIVATE reduct_static)
+        target_include_directories(${fuzzer} PRIVATE "${CMAKE_BINARY_DIR}")
+        target_compile_options(${fuzzer} PRIVATE
+            -fsanitize=fuzzer,address,undefined
+            -fno-omit-frame-pointer
+            -g
+        )
+        target_link_options(${fuzzer} PRIVATE -fsanitize=fuzzer,address,undefined)
+    endforeach()
 endif()
 
 if(NOT WIN32)

@@ -12,6 +12,23 @@
 #include "reduct/standard.h"
 #include "reduct/stringify.h"
 
+// Convert a double to int64 with explicit range/NaN checks. The bare C cast is
+// UB for NaN, infinities, and values outside the int64 range, so anything that
+// would have been UB now surfaces as a runtime error instead.
+static inline reduct_int64_t reduct_float_to_int(reduct_t* reduct, reduct_float_t f)
+{
+    if (REDUCT_UNLIKELY(f != f))
+    {
+        REDUCT_ERROR_RUNTIME(reduct, "cannot convert NaN to integer");
+    }
+    // (double)INT64_MIN is exactly -2^63; its negation is exactly 2^63, one past INT64_MAX.
+    if (REDUCT_UNLIKELY(f < (reduct_float_t)INT64_MIN || f >= -(reduct_float_t)INT64_MIN))
+    {
+        REDUCT_ERROR_RUNTIME(reduct, "float %g is out of integer range", f);
+    }
+    return (reduct_int64_t)f;
+}
+
 REDUCT_API reduct_handle_t reduct_assert(reduct_t* reduct, reduct_handle_t* cond, reduct_handle_t* msg)
 {
     REDUCT_ASSERT(reduct != REDUCT_NULL);
@@ -1755,7 +1772,7 @@ REDUCT_API reduct_handle_t reduct_get_int(reduct_t* reduct, reduct_handle_t* han
     }
     if (REDUCT_HANDLE_IS_FLOAT(handle))
     {
-        return REDUCT_HANDLE_FROM_INT((reduct_int64_t)REDUCT_HANDLE_TO_FLOAT(handle));
+        return REDUCT_HANDLE_FROM_INT(reduct_float_to_int(reduct, REDUCT_HANDLE_TO_FLOAT(handle)));
     }
     reduct_item_t* item = reduct_handle_item(reduct, handle);
     REDUCT_ERROR_RUNTIME_ASSERT(reduct, item->type == REDUCT_ITEM_TYPE_ATOM && reduct_atom_is_number(&item->atom), "expected integer, got %s", reduct_item_type_str(item));
@@ -2427,6 +2444,10 @@ REDUCT_API reduct_handle_t reduct_clamp(reduct_t* reduct, reduct_handle_t* val, 
     return current;
 }
 
+// The int branch funnels through reduct_float_to_int so intrinsics that
+// return a float (sqrt, exp) cannot UB-cast NaN/inf/out-of-range to int64.
+// For abs the intrinsic already returns int64 and the round-trip is exact
+// for any value within the 48-bit handle range that ever reaches a register.
 #define REDUCT_MATH_UNARY_IMPL(_name, _intFunc, _floatFunc) \
     REDUCT_API reduct_handle_t _name(reduct_t* reduct, reduct_handle_t* val) \
     { \
@@ -2435,7 +2456,7 @@ REDUCT_API reduct_handle_t reduct_clamp(reduct_t* reduct, reduct_handle_t* val, 
         { \
             reduct_handle_t iVal = reduct_get_int(reduct, val); \
             reduct_int64_t i = REDUCT_HANDLE_TO_INT(&iVal); \
-            return REDUCT_HANDLE_FROM_INT((reduct_int64_t)_intFunc(i)); \
+            return REDUCT_HANDLE_FROM_INT(reduct_float_to_int(reduct, (reduct_float_t)_intFunc(i))); \
         } \
         reduct_handle_t floatVal = reduct_get_float(reduct, val); \
         reduct_float_t f = REDUCT_HANDLE_TO_FLOAT(&floatVal); \
@@ -2458,7 +2479,7 @@ REDUCT_MATH_UNARY_IMPL(reduct_sqrt, REDUCT_SQRT, REDUCT_SQRT)
         } \
         reduct_handle_t floatVal = reduct_get_float(reduct, val); \
         reduct_float_t f = REDUCT_HANDLE_TO_FLOAT(&floatVal); \
-        return REDUCT_HANDLE_FROM_INT((reduct_int64_t)_float_func(f)); \
+        return REDUCT_HANDLE_FROM_INT(reduct_float_to_int(reduct, (reduct_float_t)_float_func(f))); \
     }
 
 REDUCT_MATH_UNARY_TO_INT_IMPL(reduct_floor, REDUCT_FLOOR)
@@ -2474,8 +2495,8 @@ REDUCT_API reduct_handle_t reduct_pow(reduct_t* reduct, reduct_handle_t* base, r
 
     if (prom.type == REDUCT_PROMOTION_TYPE_INT)
     {
-        return REDUCT_HANDLE_FROM_INT(
-            (reduct_int64_t)REDUCT_POW((reduct_float_t)prom.a.intVal, (reduct_float_t)prom.b.intVal));
+        return REDUCT_HANDLE_FROM_INT(reduct_float_to_int(reduct,
+            (reduct_float_t)REDUCT_POW((reduct_float_t)prom.a.intVal, (reduct_float_t)prom.b.intVal)));
     }
     return REDUCT_HANDLE_FROM_FLOAT((reduct_float_t)REDUCT_POW(prom.a.floatVal, prom.b.floatVal));
 }
@@ -2490,7 +2511,8 @@ REDUCT_API reduct_handle_t reduct_log(struct reduct* reduct, reduct_handle_t* va
         {
             reduct_handle_t iVal = reduct_get_int(reduct, val);
             reduct_int64_t i = REDUCT_HANDLE_TO_INT(&iVal);
-            return REDUCT_HANDLE_FROM_INT((reduct_int64_t)REDUCT_LOG(i));
+            return REDUCT_HANDLE_FROM_INT(reduct_float_to_int(reduct,
+                (reduct_float_t)REDUCT_LOG((reduct_float_t)i)));
         }
 
         reduct_handle_t floatVal = reduct_get_float(reduct, val);
@@ -2504,7 +2526,7 @@ REDUCT_API reduct_handle_t reduct_log(struct reduct* reduct, reduct_handle_t* va
     if (prom.type == REDUCT_PROMOTION_TYPE_INT)
     {
         reduct_float_t res = REDUCT_LOG((reduct_float_t)prom.a.intVal) / REDUCT_LOG((reduct_float_t)prom.b.intVal);
-        return REDUCT_HANDLE_FROM_INT((reduct_int64_t)res);
+        return REDUCT_HANDLE_FROM_INT(reduct_float_to_int(reduct, res));
     }
     reduct_float_t res = REDUCT_LOG(prom.a.floatVal) / REDUCT_LOG(prom.b.floatVal);
     return REDUCT_HANDLE_FROM_FLOAT((reduct_float_t)res);
@@ -2552,7 +2574,8 @@ REDUCT_API reduct_handle_t reduct_rand(struct reduct* reduct, reduct_handle_t* m
 
     if (prom.type == REDUCT_PROMOTION_TYPE_INT)
     {
-        reduct_int64_t res = prom.a.intVal + (reduct_int64_t)(r * (prom.b.intVal - prom.a.intVal));
+        reduct_int64_t res = prom.a.intVal
+            + reduct_float_to_int(reduct, r * (reduct_float_t)(prom.b.intVal - prom.a.intVal));
         return REDUCT_HANDLE_FROM_INT(res);
     }
     reduct_float_t res = prom.a.floatVal + (r * (prom.b.floatVal - prom.a.floatVal));

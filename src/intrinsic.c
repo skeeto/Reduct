@@ -774,11 +774,14 @@ static inline reduct_atom_t* reduct_fold_binary_calc(reduct_compiler_t* compiler
         switch (op)
         {
         case REDUCT_OPCODE_ADD:
-            return reduct_atom_new_int(compiler->reduct, li + ri);
+            return reduct_atom_new_int(compiler->reduct,
+                (reduct_int64_t)((reduct_uint64_t)li + (reduct_uint64_t)ri));
         case REDUCT_OPCODE_SUB:
-            return reduct_atom_new_int(compiler->reduct, li - ri);
+            return reduct_atom_new_int(compiler->reduct,
+                (reduct_int64_t)((reduct_uint64_t)li - (reduct_uint64_t)ri));
         case REDUCT_OPCODE_MUL:
-            return reduct_atom_new_int(compiler->reduct, li * ri);
+            return reduct_atom_new_int(compiler->reduct,
+                (reduct_int64_t)((reduct_uint64_t)li * (reduct_uint64_t)ri));
         case REDUCT_OPCODE_DIV:
             if (ri == 0 || (li == INT64_MIN && ri == -1))
             {

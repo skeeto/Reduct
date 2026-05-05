@@ -393,7 +393,8 @@ struct reduct;
         if (REDUCT_LIKELY( \
                 (((_bVal ^ REDUCT_HANDLE_TAG_INT) | (_cVal ^ REDUCT_HANDLE_TAG_INT)) & REDUCT_HANDLE_MASK_TAG) == 0)) \
         { \
-            *(_a) = REDUCT_HANDLE_FROM_INT(REDUCT_HANDLE_TO_INT(&_bVal) _op REDUCT_HANDLE_TO_INT(&_cVal)); \
+            *(_a) = REDUCT_HANDLE_FROM_INT((reduct_int64_t)((reduct_uint64_t)REDUCT_HANDLE_TO_INT(&_bVal) \
+                _op(reduct_uint64_t) REDUCT_HANDLE_TO_INT(&_cVal))); \
         } \
         else if (REDUCT_LIKELY(REDUCT_HANDLE_IS_FLOAT(&_bVal) && REDUCT_HANDLE_IS_FLOAT(&_cVal))) \
         { \
@@ -405,7 +406,8 @@ struct reduct;
             reduct_handle_promote(_reduct, _b, _c, &prom); \
             if (prom.type == REDUCT_PROMOTION_TYPE_INT) \
             { \
-                *(_a) = REDUCT_HANDLE_FROM_INT(prom.a.intVal _op prom.b.intVal); \
+                *(_a) = REDUCT_HANDLE_FROM_INT( \
+                    (reduct_int64_t)((reduct_uint64_t)prom.a.intVal _op(reduct_uint64_t) prom.b.intVal)); \
             } \
             else \
             { \

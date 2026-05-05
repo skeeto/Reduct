@@ -780,7 +780,11 @@ static inline reduct_atom_t* reduct_fold_binary_calc(reduct_compiler_t* compiler
         case REDUCT_OPCODE_MUL:
             return reduct_atom_new_int(compiler->reduct, li * ri);
         case REDUCT_OPCODE_DIV:
-            return (ri == 0) ? REDUCT_NULL : reduct_atom_new_int(compiler->reduct, li / ri);
+            if (ri == 0 || (li == INT64_MIN && ri == -1))
+            {
+                return REDUCT_NULL;
+            }
+            return reduct_atom_new_int(compiler->reduct, li / ri);
         case REDUCT_OPCODE_MOD:
             return (ri == 0) ? REDUCT_NULL : reduct_atom_new_int(compiler->reduct, li % ri);
         case REDUCT_OPCODE_BAND:
@@ -1301,7 +1305,27 @@ void reduct_intrinsic_greater_equal(reduct_compiler_t* compiler, reduct_item_t* 
 REDUCT_INTRINSIC_NATIVE_ARITH(add, +, 0)
 REDUCT_INTRINSIC_NATIVE_ARITH(mul, *, 1)
 REDUCT_INTRINSIC_NATIVE_ARITH(sub, -, 0)
-REDUCT_INTRINSIC_NATIVE_ARITH(div, /, 1)
+
+static reduct_handle_t reduct_intrinsic_native_div(reduct_t* reduct, reduct_size_t argc, reduct_handle_t* argv)
+{
+    if (argc == 0)
+    {
+        return REDUCT_HANDLE_FROM_INT(1);
+    }
+    if (argc == 1)
+    {
+        reduct_handle_t res;
+        reduct_handle_t id = REDUCT_HANDLE_FROM_INT(1);
+        REDUCT_HANDLE_DIV_FAST(reduct, &res, &id, &argv[0]);
+        return res;
+    }
+    reduct_handle_t res = argv[0];
+    for (reduct_size_t i = 1; i < argc; i++)
+    {
+        REDUCT_HANDLE_DIV_FAST(reduct, &res, &res, &argv[i]);
+    }
+    return res;
+}
 
 REDUCT_INTRINSIC_NATIVE_BITWISE(band, &)
 REDUCT_INTRINSIC_NATIVE_BITWISE(bor, |)

@@ -392,7 +392,12 @@ OP_COMPARE(label_ge, >=)
 OP_ARITH(label_add, +)
 OP_ARITH(label_sub, -)
 OP_ARITH(label_mul, *)
-OP_ARITH(label_div, /)
+LABEL_C_OP(label_div, {
+    DECODE_A();
+    DECODE_B();
+    REDUCT_HANDLE_DIV_FAST(reduct, &base[a], &base[b], &valC);
+    DISPATCH();
+})
 LABEL_C_OP(label_mod, {
     DECODE_A();
     DECODE_B();

@@ -479,6 +479,64 @@ struct reduct;
     } while (0)
 
 /**
+ * @brief Perform a divide operation on two handles with a fast path for integers and floats.
+ *
+ * Throws a runtime error on integer divide-by-zero or on the INT64_MIN / -1 overflow case;
+ * float division is left to IEEE-754 (no UB in C).
+ *
+ * @param _reduct Pointer to the Reduct structure.
+ * @param _a The target handle.
+ * @param _b The first handle.
+ * @param _c The second handle
+ */
+#define REDUCT_HANDLE_DIV_FAST(_reduct, _a, _b, _c) \
+    do \
+    { \
+        reduct_handle_t _bVal = *(_b); \
+        reduct_handle_t _cVal = *(_c); \
+        if (REDUCT_LIKELY( \
+                (((_bVal ^ REDUCT_HANDLE_TAG_INT) | (_cVal ^ REDUCT_HANDLE_TAG_INT)) & REDUCT_HANDLE_MASK_TAG) == 0)) \
+        { \
+            reduct_int64_t _bi = REDUCT_HANDLE_TO_INT(&_bVal); \
+            reduct_int64_t _ci = REDUCT_HANDLE_TO_INT(&_cVal); \
+            if (REDUCT_UNLIKELY(_ci == 0)) \
+            { \
+                REDUCT_ERROR_RUNTIME(_reduct, "divide by zero"); \
+            } \
+            if (REDUCT_UNLIKELY(_bi == INT64_MIN && _ci == -1)) \
+            { \
+                REDUCT_ERROR_RUNTIME(_reduct, "integer division overflow"); \
+            } \
+            *(_a) = REDUCT_HANDLE_FROM_INT(_bi / _ci); \
+        } \
+        else if (REDUCT_LIKELY(REDUCT_HANDLE_IS_FLOAT(&_bVal) && REDUCT_HANDLE_IS_FLOAT(&_cVal))) \
+        { \
+            *(_a) = REDUCT_HANDLE_FROM_FLOAT(REDUCT_HANDLE_TO_FLOAT(&_bVal) / REDUCT_HANDLE_TO_FLOAT(&_cVal)); \
+        } \
+        else \
+        { \
+            reduct_promotion_t prom; \
+            reduct_handle_promote(_reduct, _b, _c, &prom); \
+            if (prom.type == REDUCT_PROMOTION_TYPE_INT) \
+            { \
+                if (REDUCT_UNLIKELY(prom.b.intVal == 0)) \
+                { \
+                    REDUCT_ERROR_RUNTIME(_reduct, "divide by zero"); \
+                } \
+                if (REDUCT_UNLIKELY(prom.a.intVal == INT64_MIN && prom.b.intVal == -1)) \
+                { \
+                    REDUCT_ERROR_RUNTIME(_reduct, "integer division overflow"); \
+                } \
+                *(_a) = REDUCT_HANDLE_FROM_INT(prom.a.intVal / prom.b.intVal); \
+            } \
+            else \
+            { \
+                *(_a) = REDUCT_HANDLE_FROM_FLOAT(prom.a.floatVal / prom.b.floatVal); \
+            } \
+        } \
+    } while (0)
+
+/**
  * @brief Check if a handle is truthy.
  *
  * @param _handle Pointer to the handle.
